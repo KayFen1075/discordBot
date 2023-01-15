@@ -15,11 +15,13 @@ const functions = fs.readdirSync("./src/functions").filter(file => file.endsWith
 const eventFiles = fs.readdirSync("./src/events").filter(file => file.endsWith(".js"));
 const commandFolders = fs.readdirSync("./src/commands");
 
+
+
 (async () => {
     for (file of functions) {
         require(`./functions/${file}`)(client);
     }
     client.handleEvents(eventFiles, "./src/events");
     client.handleCommands(commandFolders, "./src/commands");
-    client.login('MTA2MDc2MTc5MzIwNDU5Njg0Ng.GV8fv-.Fbx8w9DN1HIH3Bjx82Sxm8GQtoOb6L9dKBCR5o')
+    client.login('')
 })();
