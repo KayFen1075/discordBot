@@ -1,7 +1,6 @@
 const fs = require('fs');
-
 const { Client, GatewayIntentBits, EmbedBuilder, PermissionsBitField, Permissions, MessageManager, Embed, Collection, Colors } = require('discord.js');
-const TOKEN = process.env.BOT_TOKEN;
+const TOKEN = process.env['BOT_TOKEN'];
 
 const client = new Client({
     intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
@@ -23,5 +22,5 @@ const commandFolders = fs.readdirSync("./src/commands");
     }
     client.handleEvents(eventFiles, "./src/events");
     client.handleCommands(commandFolders, "./src/commands");
-    client.login('')
+    client.login('MTA2MDc2MTc5MzIwNDU5Njg0Ng.GDYLr1.PLualrF9ePCEXJckbYa-HceiFbGJ0S_LmcWksQ')
 })();

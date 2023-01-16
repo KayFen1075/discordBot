@@ -226,7 +226,7 @@ module.exports = {
                         users_string += `🟨`;
                     } else
                         if (check_game_in_list(user, game_in_list)) {
-                            users_string += `✅`;
+                            users_string += `🟩`;
                         } else {
                             users_string += `🟥`;
                         }
@@ -255,8 +255,8 @@ module.exports = {
                         android += `🟨`;
                     } else
                         if (check_android_game_in_list(user, game_in_list)) {
-                            android += `✅`;
-                        } else {
+                            android += `🟩`;
+                        }  else {
                             android += `🟥`;
                         }
                 }
