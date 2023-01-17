@@ -22,5 +22,18 @@ const commandFolders = fs.readdirSync("./src/commands");
     }
     client.handleEvents(eventFiles, "./src/events");
     client.handleCommands(commandFolders, "./src/commands");
-    client.login('MTA2MDc2MTc5MzIwNDU5Njg0Ng.GDYLr1.PLualrF9ePCEXJckbYa-HceiFbGJ0S_LmcWksQ')
+    client.login('MTA2MDc2MTc5MzIwNDU5Njg0Ng.GhwaO5.V7XYlVDUpP3vzEyTA94dE3LziaoE21LewvzwTg')
 })();
+
+client.on('interactionCreate', async (interaction) =>{
+    if (interaction.customId === 'remove_pc_games') {
+        let userr = JSON.parse(fs.readFileSync(`./src/dataBase/users/${interaction.user.username}.json`, 'utf-8'));
+        let filteredArray = userr.data.games.filter(x => !interaction.values.includes(x));
+        userr.data.games = filteredArray;
+
+        const userData = JSON.stringify(userr);
+
+        await interaction.reply(`Удаленно: \`${interaction.values}\`, теперь у тебя такие игры: \`${filteredArray}\``)
+        fs.writeFileSync(`./src/dataBase/users/${interaction.user.username}.json`, userData)
+    }
+})
