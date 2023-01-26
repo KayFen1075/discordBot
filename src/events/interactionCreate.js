@@ -1,31 +1,26 @@
-const { Interaction, Embed, EmbedBuilder } = require("discord.js");
+const { Events, EmbedBuilder, Colors, ActionRowBuilder, ButtonBuilder } = require('discord.js')
+const fs = require('fs')
+const { game_table } = require('../functions/listFunc.js')
+const { execute } = require('./ready.js')
 
 module.exports = {
-    name: 'interactionCreate',
-    async execute(interaction, client) {
-        if (!interaction.isCommand()) return;
+    name: Events.InteractionCreate,
 
-        const command = client.commands.get(interaction.commandName);
+    async execute(interaction) {
+        if (!interaction.isChatInputCommand()) return;
 
-        if (!command) return
-        
-        try{
-            await command.execute(interaction, client);
+        const command = interaction.client.commands.get(interaction.commandName);
+
+        if (!command) {
+            console.error(`Команда ${interaction.commandName} не найдена.`);
+            return;
+        }
+
+        try {
+            await command.execute(interaction);
         } catch (error) {
-            console.log(error);
-            await interaction.reply({
-                content: {content: 'Ошибка!',
-                embeds: new EmbedBuilder()
-                    .setTitle('⚠️ Произошла ошибка')
-                    .setDescription(`Во время использования комманды произошла ошибка:\n\`\`\`${error}\`\`\`\nЕсли этой ошибки не должно было быть, напиши об этом в баге со скриншотом`)
-                    .setColor('Red')
-                }, 
-                ephemeral: true
-            });
-        } 
-
-    },
-    
-
-
-};
+            console.error(error);
+            await interaction.reply({ content: `При использование команды произошла ошибка!\`\`\`${error}\`\`\``, ephemeral: true });
+        }
+    }
+}

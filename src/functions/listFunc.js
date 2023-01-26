@@ -206,4 +206,4 @@ function game_table() {
 
     return `${list_names}\n**💻 ПК игры:**\n\`\`\`js\n${end_list}\`\`\`\n**<:android:1065337434809831495> Андроид игры:**\n\`\`\`js\n${end_list_android}\`\`\`\n**Короткая история:**\n\`\`\`diff\n${history}\`\`\` `;
 }
-module.exports = { game_table }
+module.exports = { game_table, get_game_list, check_game_in_list }

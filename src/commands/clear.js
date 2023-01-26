@@ -1,5 +1,5 @@
 const { Client, SlashCommandBuilder, GatewayIntentBits, EmbedBuilder, PermissionsBitField, Permissions, MessageManager, Embed, Collection, Colors } = require('discord.js');
-const { execute } = require('../commands/bot');
+const { execute } = require('./bot');
 
 module.exports = {
 data: new SlashCommandBuilder()

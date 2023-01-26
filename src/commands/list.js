@@ -17,6 +17,7 @@ module.exports = {
             .addStringOption(option => option
                 .setName('games').setDescription('Игры котоыре ты хочешь добавить(через , )').setRequired(true))
             .addBooleanOption(option => option.setName('android').setDescription('Игры котоыре ты хочешь добавить(через ,)').setRequired(false))
+            .addUserOption(option => option.setName('user').setDescription('Выбери пользователя для редактирования').setRequired(false))
         )
         .addSubcommand(subcommand => subcommand
             .setName('remove')
@@ -29,10 +30,23 @@ module.exports = {
         let message = await channel.messages.fetch(messageId.id).catch(err => {
             console.error(err);
         });
+        let interactionUser;
+        if (interaction.user.username) {
+            interactionUser = interaction.user.username
+        } else {
+            interactionUser = interaction.user.tag
+        }
+        if (interaction.options.get('user')) {
+            if (interaction.options.get('user').member.nickname) {
+                interactionUser = interaction.options.get('user').member.nickname
+            } else {
+                interactionUser = interaction.options.get('user').user.username
+            }
+        }
         if (interaction.options._subcommand === 'add') {
             if (!interaction.options.get('android')) {
-                let userr = JSON.parse(fs.readFileSync(`./src/dataBase/users/${interaction.user.username}.json`, 'utf-8'));
-                let newGames = interaction.options.get('games').value.split(',');
+                let userr = JSON.parse(fs.readFileSync(`./src/dataBase/users/${interactionUser}.json`, 'utf-8'));
+                let newGames = interaction.options.get('games').value.trim().split(',');
 
                 let existingGames = newGames.filter(game => userr.data.games.some(x => x.trim() === game.trim()));
 
@@ -45,11 +59,11 @@ module.exports = {
 
                 const userData = JSON.stringify(userr);
 
-                fs.writeFileSync(`./src/dataBase/users/${interaction.user.username}.json`, userData)
+                fs.writeFileSync(`./src/dataBase/users/${interactionUser}.json`, userData)
                 bot.list_history = [`+🟢 ${userr.userName} добавил в список ${interaction.options.get('games').value} (PC)\n`, bot.list_history[0], bot.list_history[1], bot.list_history[2], bot.list_history[3]]
                 interaction.reply({ content: `В ваш список были добавлены **${interaction.options.get('games').value}**`, ephemeral: true })
                 message.thread.send({
-                    content: `${userr.userName} добавил игру`,
+                    content: `${userr.userName}(${interaction.user.tag}) добавил игру`,
                     embeds: [new EmbedBuilder()
                         .setTitle('🟢 Добавление игры (PC)')
                         .setColor(Colors.Green)
@@ -58,8 +72,8 @@ module.exports = {
                     ]
                 })
             } else {
-                let userr = JSON.parse(fs.readFileSync(`./src/dataBase/users/${interaction.user.username}.json`, 'utf-8'));
-                let newGames = interaction.options.get('games').value.split(',')
+                let userr = JSON.parse(fs.readFileSync(`./src/dataBase/users/${interactionUser}.json`, 'utf-8'));
+                let newGames = interaction.options.get('games').value.trim().split(',')
                 let existingGames = newGames.filter(game => userr.data.android_games.some(x => x.trim() === game.trim()))
 
                 if (existingGames.length > 0) {
@@ -71,11 +85,11 @@ module.exports = {
 
                 const userData = JSON.stringify(userr);
 
-                fs.writeFileSync(`./src/dataBase/users/${interaction.user.username}.json`, userData)
+                fs.writeFileSync(`./src/dataBase/users/${interactionUser}.json`, userData)
                 bot.list_history = [`+🟢 ${userr.userName} Добавил в список ${interaction.options.get('games').value} (Android)\n`, bot.list_history[0], bot.list_history[1], bot.list_history[2], bot.list_history[3]]
                 interaction.reply({ content: `В ваш список были добавлены **${interaction.options.get('games').value}**(Android)`, ephemeral: true })
                 message.thread.send({
-                    content: `${userr.userName} добавил игру`,
+                    content: `${userr.userName}(${interaction.user.tag}) добавил игру`,
                     embeds: [new EmbedBuilder()
                         .setTitle('🟢 Добавление игры (Android)')
                         .setColor(Colors.Green)
@@ -86,7 +100,7 @@ module.exports = {
             }
             fs.writeFileSync(`./src/dataBase/bot.json`, JSON.stringify(bot))
         } else if (interaction.options._subcommand === 'remove') {
-            let userr = JSON.parse(fs.readFileSync(`./src/dataBase/users/${interaction.user.username}.json`, 'utf-8'));
+            let userr = JSON.parse(fs.readFileSync(`./src/dataBase/users/${interactionUser}.json`, 'utf-8'));
 
             const andr = interaction.options.get('android');
             console.log(andr);
@@ -132,6 +146,7 @@ module.exports = {
                     return {
                         label: game,
                         description: `${desc} Удалить игру Android`,
+                        
                         value: game,
 
                     }
