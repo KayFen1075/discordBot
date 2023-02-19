@@ -1,0 +1,15 @@
+{
+    "userName": "Денис",
+    "createEvent": {
+        "setup1": [],
+        "setup2": []
+    },
+    "data": {
+        "happyDate": "01.11.2007",
+        "discription": "я гей манга аниме хентай ядерная боеголовка",
+        "games": [
+            "cs:go"
+        ],
+        "android_games": []
+    }
+}

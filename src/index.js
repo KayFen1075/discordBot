@@ -2,20 +2,21 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 const path = require('node:path');
 dotenv.config();
-const { Events, Client, ActionRowBuilder, ButtonBuilder, GatewayIntentBits, EmbedBuilder, PermissionsBitField, Permissions, MessageManager, Embed, Collection, Colors, Message } = require('discord.js');
+const { Events, Client, ActionRowBuilder,ButtonBuilder, GatewayIntentBits, EmbedBuilder, PermissionsBitField, Permissions, MessageManager, Embed, Collection, Colors, Message } = require('discord.js');
+const { VoiceConnectionStatus, AudioPlayerStatus } = require('@discordjs/voice');
 
 const { token } = require('./config.json');
 const { channel } = require('diagnostics_channel');
 const { request } = require('http');
-const { time } = require('console');
+const { time, Console } = require('console');
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent]
+    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates]
 });
 
 client.commands = new Collection();
 
-// client.on('interactionCreate', interaction => {
-// 	interaction.guild.members.cache.get().user.username
+// client.on('interactionCreate', (interaction) => {
+// 	interaction.commandName
 // })
 
 const commandsPath = path.join(__dirname, 'commands');
@@ -44,3 +45,4 @@ for (const file of eventFiles) {
 }
 
 client.login(token)
+

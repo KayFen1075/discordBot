@@ -1,0 +1,16 @@
+{
+    "userName": "Тарас",
+    "createEvent": {
+        "setup1": [],
+        "setup2": []
+    },
+    "data": {
+        "happyDate": "08.02.2008",
+        "discription": "Я тот которій от Бориса у меня есть хобби играть в кампутер",
+        "games": [
+            "PayDay 2",
+            " Brawlhalla"
+        ],
+        "android_games": []
+    }
+}

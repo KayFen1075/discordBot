@@ -22,26 +22,22 @@ module.exports = {
         .addSubcommand(subcommand => subcommand
             .setName('remove')
             .setDescription('Удалить игры из списка(Выбрать из следущего собщения) можно выбрать андроид')
-            .addBooleanOption(option => option.setName('android').setDescription('Игры котоыре ты хочешь добавить(через,)').setRequired(false))),
+            .addBooleanOption(option => option.setName('android').setDescription('Игры котоыре ты хочешь добавить(через,)').setRequired(false))
+        ),
     async execute(interaction) {
+        if (!fs.existsSync(`./src/dataBase/users/${interaction.user.id}.json`)) {
+            await interaction.reply({content: 'Ты не участник **ХАЖАБЫ** что бы использовать эту команду. Пройти регистрацию что бы использовать **все** команды <#1061827016518815845>', ephemeral: true})
+            return
+        }
         let bot = JSON.parse(fs.readFileSync(`./src/dataBase/bot.json`, 'utf-8'));
         const messageId = bot.message_list_id;
         let channel = await interaction.guild.channels.cache.get("1061827241031508121");
         let message = await channel.messages.fetch(messageId.id).catch(err => {
             console.error(err);
         });
-        let interactionUser;
-        if (interaction.user.username) {
-            interactionUser = interaction.user.username
-        } else {
-            interactionUser = interaction.user.tag
-        }
+        let interactionUser = interaction.user.id;
         if (interaction.options.get('user')) {
-            if (interaction.options.get('user').member.nickname) {
-                interactionUser = interaction.options.get('user').member.nickname
-            } else {
-                interactionUser = interaction.options.get('user').user.username
-            }
+            interactionUser = interaction.options.get('user').member.id
         }
         if (interaction.options._subcommand === 'add') {
             if (!interaction.options.get('android')) {
@@ -168,4 +164,3 @@ module.exports = {
         }
     }
 }
-

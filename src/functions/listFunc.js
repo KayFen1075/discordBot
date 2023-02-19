@@ -20,13 +20,13 @@ function get_game_list() {
             uniqueGames.add("Мать ");
         } else {
             for (let game of fileData) {
-                game_in_data = game.toString().trim();
+                game_in_data = game.toString().toLowerCase().trim();
                 if (!uniqueGames.has(game_in_data) && game_in_data.charAt(0) !== '!') {
                     uniqueGames.add(game_in_data);
                 }
             }
             for (let game of fileData) {
-                game_in_data = game.toString().trim();
+                game_in_data = game.toString().toLowerCase().trim();
                 game_one_str = game_in_data.substring(1)
                 if (!uniqueGames.has(game_one_str) && game_in_data.charAt(0) === '!') {
                     uniqueGames.add(game_one_str);
@@ -48,13 +48,13 @@ function get_android_game_list() {
             uniqueGames.add("Мать ");
         } else {
             for (let game of fileData) {
-                game_in_data = game.toString().trim();
+                game_in_data = game.toString().toLowerCase().trim();
                 if (!uniqueGames.has(game_in_data) && game_in_data.charAt(0) !== '!') {
                     uniqueGames.add(game_in_data);
                 }
             }
             for (let game of fileData) {
-                game_in_data = game.toString().trim();
+                game_in_data = game.toString().toLowerCase().trim();
                 game_one_str = game_in_data.substring(1)
                 if (!uniqueGames.has(game_one_str) && game_in_data.charAt(0) === '!') {
                     uniqueGames.add(game_one_str);
@@ -71,13 +71,13 @@ function check_game_in_list(user, game, type) {
     game_trim = game.toString().trim();
     if (type !== '!') {
         JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}.json`, 'utf-8')).data.games.forEach((game_in_list => {
-            if (game_in_list.trim() === game_trim) {
+            if (game_in_list.toLowerCase().trim() === game_trim) {
                 have_game = true;
             }
         })); return have_game;
     } else {
         JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}.json`, 'utf-8')).data.games.forEach((game_in_list => {
-            if (game_in_list.trim() === `!${game_trim}`) {
+            if (game_in_list.toLowerCase().trim() === `!${game_trim}`) {
                 have_game = true;
             }
         })); return have_game;
@@ -86,16 +86,16 @@ function check_game_in_list(user, game, type) {
 
 function check_android_game_in_list(user, game, type) {
     let have_game = false;
-    game_trim = game.toString().trim();
+    game_trim = game.toString().toLowerCase().trim();
     if (type !== '!') {
         JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}.json`, 'utf-8')).data.android_games.forEach((game_in_list => {
-            if (game_in_list.trim() === game_trim) {
+            if (game_in_list.toLowerCase().trim() === game_trim.toLowerCase()) {
                 have_game = true;
             }
         })); return have_game;
     } else {
         JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}.json`, 'utf-8')).data.android_games.forEach((game_in_list => {
-            if (game_in_list.trim() === `!${game_trim}`) {
+            if (game_in_list.toLowerCase().trim() === `!${game_trim.toLowerCase()}`) {
                 have_game = true;
             }
         })); return have_game;
@@ -118,6 +118,7 @@ function game_table() {
     for (let user of users) {
         user = user.replace('.json', '');
         for (let game of game_list) {
+            game = game.toLowerCase()
             if (check_game_in_list(user, game) || check_game_in_list(user, game, '!')) {
                 game_counts[game]++;
             }
@@ -126,14 +127,10 @@ function game_table() {
     game_list.sort((a, b) => game_counts[b] - game_counts[a]);
 
     let android_game_counts = {};
-    for (let game of game_list) {
-        if (game !== "empty") {
-            android_game_counts[game] = 0;
-        }
-    }
     for (let user of users) {
         user = user.replace('.json', '');
         for (let game of game_list) {
+            game = game.toLowerCase()
             if (check_android_game_in_list(user, game) || check_android_game_in_list(user, game, '!')) {
                 android_game_counts[game]++;
             }
@@ -162,10 +159,10 @@ function game_table() {
         users_string += ' '.repeat(maxSpaces);
         for (let user of users) {
             user = user.replace('.json', '');
-            if (check_game_in_list(user, game_in_list, '!')) {
+            if (check_game_in_list(user, game_in_list.toLowerCase(), '!')) {
                 users_string += `🟨 `;
             } else
-                if (check_game_in_list(user, game_in_list)) {
+                if (check_game_in_list(user, game_in_list.toLowerCase())) {
                     users_string += `🟩 `;
                 } else {
                     users_string += `🟥 `;
@@ -175,6 +172,17 @@ function game_table() {
     });
 
     let list_names = '';
+
+    let list_names_arr = [];
+    let list_descripton = [];
+
+    for (let user of users) {
+        let userDescription = JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}`)).data.discription;
+        let userName = JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}`)).userName;
+        list_names_arr.push(`**${JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}`)).userName.trim()}**: ${userName.charAt(0)}\n`)
+        list_descripton.push(userDescription)
+    }
+
         for (let user of users) {
             let userName = JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}`)).userName;
             list_names += `**${JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}`)).userName.trim()}**: ${userName.charAt(0)}\n`;
@@ -184,6 +192,7 @@ function game_table() {
     let end_list_android = '';
     
     android_game_list.forEach(game_in_list => {
+        game_in_list = game_in_list.toLowerCase()
         android = `${game_in_list} `;
         const maxSpaces = Math.max(Math.max(...android_game_list.map(game => game.length), ...game_list.map(game => game.length))) - game_in_list.length;
         android += ' '.repeat(maxSpaces);
@@ -204,6 +213,6 @@ function game_table() {
     const history_data = JSON.parse(fs.readFileSync(`./src/dataBase/bot.json`)).list_history
     const history = history_data.toString().split(',').join('')
 
-    return `${list_names}\n**💻 ПК игры:**\n\`\`\`js\n${end_list}\`\`\`\n**<:android:1065337434809831495> Андроид игры:**\n\`\`\`js\n${end_list_android}\`\`\`\n**Короткая история:**\n\`\`\`diff\n${history}\`\`\` `;
+    return [list_names_arr, list_descripton,`\`\`\`js\n${end_list}\`\`\``,`\n**<:android:1065337434809831495> Андроид игры:**\n\`\`\`js\n${end_list_android}\`\`\``,`\`\`\`diff\n${history}\`\`\``];
 }
 module.exports = { game_table, get_game_list, check_game_in_list }
