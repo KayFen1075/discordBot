@@ -3,8 +3,6 @@ const { execute } = require('./list');
 const { EmbedBuilder, Colors, ActionRowBuilder, StringSelectMenuBuilder} = require('discord.js')
 const fs = require('fs')
 
-console.log(21934066-(110*60000));
-
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('profile')

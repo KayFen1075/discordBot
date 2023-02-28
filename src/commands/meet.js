@@ -153,7 +153,7 @@ module.exports = {
                     console.log(bot.state[bot.state.length - 1]);
                     fs.writeFileSync(`./src/dataBase/bot.json`, JSON.stringify(bot))
 
-                meetChannel.send(`<@${interaction.user.id}> закрыл собрание, оно длилось **${Math.round(timeMeet / 60000)}** минут`)
+                meetChannel.send(`<@${interaction.user.id}> закрыл собрание, оно длилось \`${Math.round(timeMeet / 60000 / 60)}ч, ${Math.round(timeMeet / 60000 % 60)}м\``)
 
                 voiceChannel.delete();
                 await interaction.reply({content: `Вы удалили собрание`, ephemeral: true})

@@ -62,10 +62,15 @@ module.exports = {
                         .setTimestamp(Date.now())
                     ,
                     new EmbedBuilder()
-                            .setTitle(`⌛ Короткая история:`)
-                            .setColor(Colors.Green)
-                            .setDescription(`${gameTable[4]}**Команды для списка:**\n\`/list add \${game} ?{android} ?{user}\` - Добавить в список игру, можно через \`,\`. Писать 1 в 1, кроме больших букв на них пофиг\n\`/list remove\` - Удалить игры из списка, выбрать из меню.\n\`android\` - может быть true или false, изначально flase.\n\`user\` - влиять на чужой список игр.`)
-                    ], components: [new ActionRowBuilder()
+                        .setTitle(`⌛ Короткая история:`)
+                        .setColor(Colors.Green)
+                        .setDescription(`${gameTable[4]}**Команды для списка:**\n\`/list add \${game} ?{android} ?{user}\` - Добавить в список игру, можно через \`,\`. Писать 1 в 1, кроме больших букв на них пофиг\n\`/list remove\` - Удалить игры из списка, выбрать из меню.\n\`android\` - может быть true или false, изначально flase.\n\`user\` - влиять на чужой список игр.`)
+                    ,
+                    new EmbedBuilder()
+                        .setTitle(`💡 Рекомендации`)
+                        .setColor(Colors.Aqua)
+                        .setDescription(`Смотря на список, я могу порекомендовать такие игры: \n\`\`\`${json.recomend}\`\`\``)
+                        ], components: [new ActionRowBuilder()
                             .addComponents([
                                 new ButtonBuilder()
                                     .setCustomId('start_confern_1')
@@ -126,11 +131,11 @@ module.exports = {
 
 
         async function updateState() {
-            async function generateChart(dates, times) {
+            async function generateChart(dates, days, mounth) {
                 let time = [];
-                times.forEach(element => {
-                    time.push((element/60000).toString())
-                });
+                // times.forEach(element => {
+                //     time.push((element/60000).toString())
+                // });
                 let colors = [
                     [255, 0, 0],      // красный
                     [255, 165, 0],    // оранжевый
@@ -180,11 +185,11 @@ module.exports = {
                 users.forEach(e => {
                     let user = JSON.parse(fs.readFileSync(`./src/dataBase/users/${e}`))
 
-                    for (let i = 0; user.state.length <= 7; i++) {
+                    for (let i = 0; user.state.length <= days; i++) {
                         user.state.unshift(0)   
                     }
         
-                    const arr = user.state.splice(-7).map(e => {return e / 60000})
+                    const arr = user.state.splice(-days).map(e => {return e / 60000 / 60})
                     botUsers.push(
                         {
                             type: "line",
@@ -198,17 +203,17 @@ module.exports = {
     
                 let bot = JSON.parse(fs.readFileSync(`./src/dataBase/bot.json`))
                 
-                for (let i = 0; bot.state.length <= 7; i++) {
+                for (let i = 0; bot.state.length <= days; i++) {
                     bot.state.unshift(0)   
                 }
     
-                const arr = bot.state.splice(-7).map(e => {return e / 60000})
+                const arr = bot.state.splice(-days).map(e => {return e / 60000 / 60})
                 botUsers.push(
                     {
                         type: "bar",
                         label: "Общее время игры",
                         borderColor: "rgba(255, 99,132)",
-                        backgroundColor: "rgb(0, 255, 0)",
+                        backgroundColor: "rgb(255, 192, 203)",
                         data: arr
                     }
                 )
@@ -273,9 +278,7 @@ module.exports = {
                 }
                 return dates;
               }
-            const dates = getLastNDays(7)
-            const times = [840000, 0, 100000, 0, 300000, 50000, 100000];
-            const imge = await generateChart(dates, times);
+            const imge = await generateChart(getLastNDays(7), 7, false);
             
             const json = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'));
             let channel = await client.channels.cache.get("1061911188528693358");
@@ -295,7 +298,7 @@ module.exports = {
                 user.state.forEach((e)=>{
                     user_time += e
                 })
-                users_time += `**${user.userName}:** \`${Math.round(user_time/60000)}м\`\n`
+                users_time += `**${user.userName}:** \`${Math.round(user_time/60000/60)}ч, ${Math.round(user_time/60000%60)}м\`\n`
             })
 
             const messageId = json.message_stats;
@@ -306,11 +309,12 @@ module.exports = {
             } else {
                 message = false
             }
-     
+            const avg = json.state.splice(-8).splice(1).reduce((acc, curr) => (curr !== Infinity ? acc + curr : acc), 0) / 8;
+
             const embed_components = {
                 embeds: [new EmbedBuilder()
                     .setTitle('📈 График активности')
-                    .setDescription(`График обновляеться каждые 5 минут, у каждого будет свой рандомный цвет который тоже месяетсья, ярко зелёный квадрат это общее время активности(Собраний)\n **Общая статистика за всё время:** \n${users_time}**Время собраний:** \`${Math.round(total_time/60000)}м\``)
+                    .setDescription(`График обновляеться каждые 5 минут, у каждого будет свой рандомный цвет который тоже месяетсья, ярко зелёный квадрат это общее время активности(Собраний)\n **Общая статистика за всё время:** \n${users_time}**Время собраний:** \`${Math.round(total_time/60000/60)}ч, ${Math.round(total_time/60000%60)}м\`\n\n**Среднее время собраний за неделю:** \`${Math.round(avg/60000/60)}ч, ${Math.round(avg/60000%60)}м\``)
                     .setColor(Colors.Green)
                     .setTimestamp(Date.now())
                 ], components: [new ActionRowBuilder()
@@ -401,13 +405,9 @@ module.exports = {
         }
         updateRegister()
 
-        const sendHappyBirthday = () => {
+        function sendHappyBirthday() {
             const today = new Date();
 
-            const fs = require('fs')
-            let bot = JSON.parse(fs.readFileSync(`./src/dataBase/bot.json`))
-             bot.state.push(0)
-             fs.writeFileSync(`./src/dataBase/bot.json`, JSON.stringify(bot))
             const users = fs.readdirSync(`./src/dataBase/users`)
             users.forEach(e => {
               let user = JSON.parse(fs.readFileSync(`./src/dataBase/users/${e}`))
@@ -462,6 +462,7 @@ module.exports = {
             
             if (botData.happyCheckDate === undefined || today.toDateString() !== new Date(botData.happyCheckDate).toDateString()) {
               sendHappyBirthday();
+              botData.state.push(0)
               botData.happyCheckDate = today;
               fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(botData));
             }

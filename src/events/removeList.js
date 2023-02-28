@@ -96,7 +96,12 @@ module.exports = {
                             .setTitle(`⌛ Короткая история:`)
                             .setColor(Colors.Green)
                             .setDescription(`${gameTable[4]}**Команды для списка:**\n\`/list add \${game} ?{android} ?{user}\` - Добавить в список игру, можно через \`,\`. Писать 1 в 1, кроме больших букв на них пофиг\n\`/list remove\` - Удалить игры из списка, выбрать из меню.\n\`android\` - может быть true или false, изначально flase.\n\`user\` - влиять на чужой список игр.`)
-                    ], components: [new ActionRowBuilder()
+                    ,
+                    new EmbedBuilder()
+                        .setTitle(`💡 Рекомендации`)
+                        .setColor(Colors.Aqua)
+                        .setDescription(`Смотря на список, я могу порекомендовать такие игры: \n\`\`\`${json.recomend}\`\`\``)
+                        ], components: [new ActionRowBuilder()
                             .addComponents([
                                 new ButtonBuilder()
                                     .setCustomId('start_confern_1')

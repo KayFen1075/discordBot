@@ -16,7 +16,7 @@ const client = new Client({
 client.commands = new Collection();
 
 // client.on('interactionCreate', (interaction) => {
-// 	interaction.commandName
+// 	interaction.channel.setPosition(1)
 // })
 
 const commandsPath = path.join(__dirname, 'commands');

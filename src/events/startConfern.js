@@ -190,7 +190,7 @@ module.exports = {
                             bot.state[bot.state.length - 1] = bot.state[bot.state.length - 1] + timeMeet
                             fs.writeFileSync(`./src/dataBase/bot.json`, JSON.stringify(bot))
 
-                        meetChannel.send(`<@${interaction.user.id}> ваше собрание было пустым, поэтому я его закрыл, оно длилось **${Math.round(timeMeet / 60000)}** минут`)
+                        meetChannel.send(`<@${interaction.user.id}> ваше собрание было пустым, поэтому я его закрыл, оно длилось \`${Math.round(timeMeet / 60000 / 60)}ч, ${Math.round(timeMeet / 60000 % 60)}м\``)
                         fs.unlinkSync(`./src/dataBase/meets/${interaction.user.id}.json`)
                         clearInterval(chech_users)
                     }

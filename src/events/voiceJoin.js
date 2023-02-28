@@ -24,17 +24,19 @@ module.exports = {
 
             let userr = fs.readFileSync(`./src/dataBase/users/${newState.member.user.id}.json`)
 
+            let oldTime = -1;
             const timeGame = setInterval(async ()=>{
-                console.log(newState.member.voice.id === newUserChannel.id);
-                if (newState.member.voice.channelId === newUserChannel.id) {
-                    let user = JSON.parse(fs.readFileSync(`./src/dataBase/users/${newState.member.user.id}.json`))
-                    user.state[user.state.length - 1] = user.state[user.state.length - 1] + 1000
-                    console.log(user.state[user.state.length - 1]);
-                    fs.writeFileSync(`./src/dataBase/users/${newState.member.user.id}.json`, JSON.stringify(user))
+                let user = JSON.parse(fs.readFileSync(`./src/dataBase/users/${newState.member.user.id}.json`))
+                console.log(`${user.state[user.state.length - 1]} / ${oldTime}`);
+                if (newState.member.voice.channelId === newUserChannel.id && user.state[user.state.length - 1] !== oldTime) {
+                        user.state[user.state.length - 1] = user.state[user.state.length - 1] + 5000
+                        oldTime = user.state[user.state.length - 1] + 5000
+                        console.log(user.userName +' '+ user.state[user.state.length - 1]);
+                        fs.writeFileSync(`./src/dataBase/users/${newState.member.user.id}.json`, JSON.stringify(user))
                 } else {
                     clearInterval(timeGame)
                 }
-            }, 1000)
+            }, 5000)
 
             const connection = joinVoiceChannel({
                 channelId: newUserChannel.id,
@@ -102,8 +104,6 @@ module.exports = {
                 } 
             }, 2000)
             
-        } else {
-            console.log(`Гость зашёл в канал`);           
         }
     }
 }
