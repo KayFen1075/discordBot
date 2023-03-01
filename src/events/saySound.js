@@ -1,7 +1,8 @@
 const { Events } = require('discord.js')
 const { VoiceConnectionStatus, AudioPlayerStatus, createAudioPlayer, NoSubscriberBehavior, joinVoiceChannel, createAudioResource } = require('@discordjs/voice');
 const { execute } = require('./ready')
-const fs = require('fs')
+const fs = require('fs');
+const { fileLog } = require('../functions/logs');
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -24,6 +25,7 @@ module.exports = {
     
                 player.play(resource)
                 connection.subscribe(player)
+                fileLog(`[SOUND] ${interaction.user.username} (${interaction.user.id}) проиграл звук \`${interaction.values}\` в категории \`welcome\``)
             } else {
                 console.log(`Вы не в голосовом канале! Либо \`${interaction.values}\` не найдено`);
             }
@@ -40,6 +42,7 @@ module.exports = {
     
                 player.play(resource)
                 connection.subscribe(player)
+                fileLog(`[SOUND] ${interaction.user.username} (${interaction.user.id}) проиграл звук \`${interaction.values}\` в категории \`goodbye\``)
             } else {
                 console.log(`Вы не в голосовом канале! Либо \`${interaction.values}\` не найдено`);
             }
@@ -50,6 +53,7 @@ module.exports = {
                 interaction.guild.channels.delete(asset.channel.id)
                 fs.unlinkSync(`./src/dataBase/assets/${interaction.values}.json`)
                 interaction.reply(`Успешно удалено`)
+                fileLog(`[ASSETS] ${interaction.user.username} (${interaction.user.id}) удалил ассет \`${interaction.values}\``)
             }
             
             

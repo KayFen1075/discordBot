@@ -2,6 +2,7 @@ const { Events, GuildScheduledEventManager } = require('discord.js')
 const { execute } = require('./ready')
 
 const { Configuration, OpenAIApi } = require("openai");
+const { fileLog } = require('../functions/logs');
 
 const configuration = new Configuration({
   apiKey: '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',
@@ -28,6 +29,7 @@ module.exports = {
               });
             await thread.send(`${response.data.choices[0].text}`)
             await waitMessage.edit('Готово!')
+            fileLog(`[BUGS] ${thread.name} (${thread.id}) был создан в канале ${thread.parent.name} (${thread.parent.id}) ответ от AI: ${response.data.choices[0].text}`)
         }
     }
 }

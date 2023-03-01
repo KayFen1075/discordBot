@@ -2,6 +2,8 @@ const { SlashCommandBuilder, ChannelType, PermissionsBitField, ActionRowBuilder,
 const { execute } = require('./list')
 const fs = require('fs')
 const { channel } = require('diagnostics_channel')
+const { fileLog } = require('../functions/logs')
+
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -58,6 +60,7 @@ module.exports = {
                 cahnnelText.send(`Материалы по ${game.value} были созданы! <#${cahnnelText.id}> создатель <@${interaction.user.id}>`)
 
                 interaction.reply(`Материалы по ${game.value} были созданы! <#${cahnnelText.id}>`)
+                fileLog(`[ASSETS] ${interaction.user.tag} (${interaction.user.id}) создал материалы по игре ${game.value} в канале ${cahnnelText.name} (${cahnnelText.id})`)
             } 
         } else if (interaction.options._subcommand === 'delete') {
             const files = fs.readdirSync(`./src/dataBase/assets`)

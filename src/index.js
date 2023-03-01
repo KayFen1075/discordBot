@@ -16,7 +16,7 @@ const client = new Client({
 client.commands = new Collection();
 
 // client.on('interactionCreate', (interaction) => {
-// 	interaction.channel.setPosition(1)
+// 	interaction.channel.messages.cache.get(interaction.message.id)
 // })
 
 const commandsPath = path.join(__dirname, 'commands');
@@ -31,6 +31,7 @@ for (const file of commandFiles) {
 		console.log(`[WARNING] The command at ${filePath} is missing a required "data" or "execute" property.`);
 	}
 }
+
 
 const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));

@@ -2,6 +2,7 @@ const { Events, ModalBuilder, ActionRowBuilder, TextInputBuilder, TextInputStyle
 const { execute } = require('./ready');
 const fs = require('fs');
 const { ButtonBuilder } = require('@discordjs/builders');
+const { fileLog } = require('../functions/logs');
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -90,6 +91,8 @@ module.exports = {
             })
             
             console.log(userData);
+            fileLog(`[QUERST] ${interaction.user.username}(${interaction.user.id}) подал заявку в хажабу!`)
+            
         } else if (await interaction.customId === 'acceptRequist') {
             if (await interaction.user.id !== '701572980332953631') {
                 await interaction.reply({content: `Вы не создатель! ||падла не трож||`, ephemeral: true});

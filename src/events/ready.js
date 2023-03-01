@@ -1,15 +1,16 @@
-const { Events ,EmbedBuilder, Colors, ActionRowBuilder, ButtonBuilder, TextInputStyle, ButtonStyle } = require('discord.js')
+const { Events, EmbedBuilder, Colors, ActionRowBuilder, ButtonBuilder, TextInputStyle, ButtonStyle } = require('discord.js')
 const fs = require('fs')
 const { game_table } = require('../functions/listFunc.js')
 const { Configuration, OpenAIApi } = require("openai");
 
 const configuration = new Configuration({
-  apiKey: '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',
+    apiKey: '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',
 });
 
 const openai = new OpenAIApi(configuration);
 
 const ChartJSImage = require('chart.js-image');
+const { fileLog } = require('../functions/logs.js');
 
 
 module.exports = {
@@ -36,28 +37,177 @@ module.exports = {
                     ])
                 ], embeds: [message]
             })
-            async function updateList() {
-                const json = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'));
-                const messageId = json.message_list_id;
-                let channel = await client.channels.cache.get("1061827241031508121");
-                let message = await channel.messages.fetch(messageId.id).catch(err => {
-                    console.error(err);
-                });
-                const gameTable = await game_table()
 
-                let user_name_description = [];
-                gameTable[0].forEach((user, i) => user_name_description.push({ name: user, value: `\`\`\`js\n${gameTable[1][i]}\`\`\``, inline: true }))
+        // end vote
+        async function endVote(id) {
+            // get data
+            let data = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'))
+            let vote = data.votes.find(e => e.id == id)
+            let users = fs.readdirSync('./src/dataBase/users')
+            let votes = {} // object with votes {vote: count}} 
 
-                const embed_components = {
+            const channel = await client.channels.cache.get(vote.channel)
+
+            const messageVotes = await channel.messages.fetch(vote.message)
+            console.log(messageVotes);
+
+            // check if 0 users voted
+            if (vote.votes_users.length == 0) {
+
+                const editedMessage = {
+                    content: `@everyone Голосование ${vote.id} завершено!`,
                     embeds: [
+                        new EmbedBuilder()
+                            .setTitle(`Голосование ${vote.id}`)
+                            .setDescription(`**Вопрос:** ${vote.question}\n**Варианты ответов:**\n${vote.choices.join('\n')}\n\n**Результаты:**\nНикто не проголосовал\n**Было дано времени:** ${vote.time}\n**Победитель:** Никто`)
+                            .setColor(Colors.Green)
+                            .setTimestamp(Date.now())
+                    ]
+                }
+                // edit vote message 
+                await messageVotes.edit(editedMessage)
+                return
+            }
+            
+            // sum votes
+            vote.choices.forEach(e => {
+                if (vote.votes_users.filter(e2 => e2.vote == e).length != 0) {
+                    votes[e] = vote.votes_users.filter(e2 => e2.vote == e).length
+                } else {
+                    votes[e] = 0
+                }
+            })
+
+            // get max vote
+            let max = 0
+            let maxVote = ''
+            for (const key in votes) {
+                if (votes[key] == max) {
+                    maxVote = `Ничья у ${key} и ${maxVote}`
+                }
+                if (votes[key] > max) {
+                    max = votes[key]
+                    maxVote = key
+                }
+            }
+
+            // users not voted
+            let usersNotVoted = []
+            users.forEach(e => {
+                user = e.replace('.json', '')
+                if (!vote.votes_users.find(e2 => e2.id == user)) {
+                    usersNotVoted.push(user)
+                }
+            })
+            // set users not voted to <@user>
+            usersNotVoted = usersNotVoted.map(e => `<@${e}>`)
+            console.log(usersNotVoted);
+
+            // get users voted id
+            let usersVoted = []
+            vote.votes_users.forEach(e => {
+                usersVoted.push(e.user)
+            })
+            console.log(usersVoted);
+
+            // get statistics in % for each vote
+            let statistics = []
+            for (const key in votes) {
+                // add progress bar and check users voted for this vote
+                if (votes[key] == 0) {
+                    statistics.push(`${key}: 0%\n` + '▬')
+                    continue
+                }
+                statistics.push(`${key}: ${Math.round(votes[key] / usersVoted.length * 100)}%\n` + '▬'.repeat(Math.round(votes[key] / usersVoted.length * 10)))
+            }
+
+            // edit vote message, disable buttons and green color for winner
+            let components = []
+            vote.choices.forEach(async e => {
+                // check draw
+                if (maxVote.includes('Ничья')) {
+                    components.push(new ButtonBuilder().setCustomId(`vote_${vote.id}_${e}`).setLabel(e).setStyle(3).setDisabled(true))
+                    return
+                }
+
+                if (e == maxVote) {
+                    components.push(new ButtonBuilder().setCustomId(`vote_${vote.id}_${e}`).setLabel(e).setStyle(3).setDisabled(true))
+                } else {
+                    components.push(new ButtonBuilder().setCustomId(`vote_${vote.id}_${e}`).setLabel(e).setStyle(4).setDisabled(true))
+                }
+            })
+            
+            await messageVotes.edit({
+                content: `Голосование ${vote.id} завершено!`,
+                embeds: [
                     new EmbedBuilder()
-                        .setTitle('🧑🏾‍❤️‍🧑🏿 Список игр пользователей')   
+                        .setTitle(vote.title)
+                        .setDescription(`**Вопрос:** ${vote.description}\n**Не проголосовали:** ${usersNotVoted.join(', ')}\n**Результаты:**\n${statistics.join('\n')}\n\n**Было дано времени:** ${vote.time}\n**Победитель:** ${maxVote}`)
+                        .setColor(vote.color)
+                        .setTimestamp(Date.now())
+                ],
+                components: [new ActionRowBuilder().addComponents(components)]
+            })
+
+            // delete vote from data
+            data.votes.splice(data.votes.indexOf(vote), 1)
+            fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(data))
+            fileLog(`[VOTE] Голосование ${vote.id} завершено! Победитель: ${maxVote} (${votes[maxVote]} голосов) (Не проголосовали: ${usersNotVoted.join(', ')})`)
+    }
+
+    
+        // check votes
+        async function cheakVotes() {
+            // check time to end vote
+            let data = JSON.parse(fs.readFileSync('./src/dataBase/bot.json', 'utf8')).votes
+            const users = fs.readdirSync('./src/dataBase/users')
+            data.forEach(async e => {
+                if (e.votes_users.length == users.length) {
+                    console.log(`Все пользователи проголосовали, голосование ${e.id} завершено`);
+                    await endVote(e.id)
+                }
+                switch (e.time) {
+                    case '1m': { if (Date.now() - e.startVote >=   60000 ) { await endVote(e.id) } break; }
+                    case '5m': { if (Date.now() - e.startVote >=   300000 ) { await endVote(e.id) } break; }
+                    case '10m': { if (Date.now() - e.startVote >=  600000 ) { await endVote(e.id) } break; }
+                    case '30m': { if (Date.now() - e.startVote >=  1800000 ) { await endVote(e.id) } break; }
+                    case '1h': { if (Date.now() - e.startVote >=   3600000 ) { await endVote(e.id) } break; }
+                    case '2h': { if (Date.now() - e.startVote >=   7200000 ) { await endVote(e.id) } break; }
+                    case '6h': { if (Date.now() - e.startVote >=   21600000 ) { await endVote(e.id) } break; }
+                    case '12h': { if (Date.now() - e.startVote >=  43200000 ) { await endVote(e.id) } break; }
+                    case '1d': { if (Date.now() - e.startVote >=   86400000 ) { await endVote(e.id) } break; }
+                    case '2d': { if (Date.now() - e.startVote >=   172800000 ) { await endVote(e.id) } break; }
+                    case '3d': { if (Date.now() - e.startVote >=   259200000 ) { await endVote(e.id) } break; }
+                    case '4d': { if (Date.now() - e.startVote >=   345600000 ) { await endVote(e.id) } break; }
+                    case '5d': { if (Date.now() - e.startVote >=   432000000 ) { await endVote(e.id) } break; }
+                    case '6d': { if (Date.now() - e.startVote >=   518400000 ) { await endVote(e.id) } break; }
+                    case '7d': { if (Date.now() - e.startVote >=   604800000 ) { await endVote(e.id) } break; }
+                }
+            })
+        }; cheakVotes() 
+
+        async function updateList() {
+            const json = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'));
+            const messageId = json.message_list_id;
+            let channel = await client.channels.cache.get("1061827241031508121");
+            let message = await channel.messages.fetch(messageId.id).catch(err => {
+                console.error(err);
+            });
+            const gameTable = await game_table()
+
+            let user_name_description = [];
+            gameTable[0].forEach((user, i) => user_name_description.push({ name: user, value: `\`\`\`js\n${gameTable[1][i]}\`\`\``, inline: true }))
+
+            const embed_components = {
+                embeds: [
+                    new EmbedBuilder()
+                        .setTitle('🧑🏾‍❤️‍🧑🏿 Список игр пользователей')
                         .addFields(user_name_description)
                         .setColor(Colors.Green)
-                    ,    
+                    ,
                     new EmbedBuilder()
                         .setTitle('🖥️ ПК игры')
-                        .setDescription(gameTable[2]+gameTable[3])
+                        .setDescription(gameTable[2] + gameTable[3])
                         .setColor(Colors.Green)
                         .setTimestamp(Date.now())
                     ,
@@ -70,65 +220,40 @@ module.exports = {
                         .setTitle(`💡 Рекомендации`)
                         .setColor(Colors.Aqua)
                         .setDescription(`Смотря на список, я могу порекомендовать такие игры: \n\`\`\`${json.recomend}\`\`\``)
-                        ], components: [new ActionRowBuilder()
-                            .addComponents([
-                                new ButtonBuilder()
-                                    .setCustomId('start_confern_1')
-                                    .setLabel('🚀 Начать собрание')
-                                    .setStyle('3'),
-                                new ButtonBuilder()
-                                    .setCustomId('plan_confern_1')
-                                    .setDisabled(true)
-                                    .setLabel('⏳ Запланировать собрание')
-                                    .setStyle('1'),
-                                new ButtonBuilder()
-                                    .setCustomId('photo_confern')
-                                    .setDisabled(true)
-                                    .setLabel('📸 Посмотреть фото')
-                                    .setStyle('1')
-                            ])]
-                }
-                if (!message) {
-                    message = await channel.send(embed_components);
-                    json.message_list_id = message;
-            
-                    fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(json));
-                    await message.startThread({
-                        name: '📙 List logs',
-                        autoArchiveDuration: 60,
-                        reason: 'Логи списка, просьба сюда не писать.\n\n🟢 - Добавление в список\n🔴 - Удаление из списка',
-                    });
-                    await message.thread.send('Начало логов!')
-                } else {
-                    message.edit(embed_components);
-                }
+                ], components: [new ActionRowBuilder()
+                    .addComponents([
+                        new ButtonBuilder()
+                            .setCustomId('start_confern_1')
+                            .setLabel('🚀 Начать собрание')
+                            .setStyle('3'),
+                        new ButtonBuilder()
+                            .setCustomId('plan_confern_1')
+                            .setDisabled(true)
+                            .setLabel('⏳ Запланировать собрание')
+                            .setStyle('1'),
+                        new ButtonBuilder()
+                            .setCustomId('photo_confern')
+                            .setDisabled(true)
+                            .setLabel('📸 Посмотреть фото')
+                            .setStyle('1')
+                    ])]
             }
+            if (!message) {
+                message = await channel.send(embed_components);
+                json.message_list_id = message;
+
+                fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(json));
+                await message.startThread({
+                    name: '📙 List logs',
+                    autoArchiveDuration: 60,
+                    reason: 'Логи списка, просьба сюда не писать.\n\n🟢 - Добавление в список\n🔴 - Удаление из списка',
+                });
+                await message.thread.send('Начало логов!')
+            } else {
+                message.edit(embed_components);
+            }
+        }
         await updateList()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
         async function updateState() {
             async function generateChart(dates, days, mounth) {
@@ -165,7 +290,7 @@ module.exports = {
                     [221, 160, 221],  // светло-фиолетовый
                     [46, 139, 87],    // морской волны
                     [255, 99, 71]     // томатный
-                  ]
+                ]
                 function generateRandomColor(alpha) {
                     const colori = Math.floor(Math.random() * colors.length)
                     let color
@@ -176,20 +301,20 @@ module.exports = {
                         colors.splice(colori, 1)
                     }
                     return color;
-                  }
-    
+                }
+
                 let botUsers = []
-                
+
                 const users = fs.readdirSync(`./src/dataBase/users`)
 
                 users.forEach(e => {
                     let user = JSON.parse(fs.readFileSync(`./src/dataBase/users/${e}`))
 
                     for (let i = 0; user.state.length <= days; i++) {
-                        user.state.unshift(0)   
+                        user.state.unshift(0)
                     }
-        
-                    const arr = user.state.splice(-days).map(e => {return e / 60000 / 60})
+
+                    const arr = user.state.splice(-days).map(e => { return e / 60000 / 60 })
                     botUsers.push(
                         {
                             type: "line",
@@ -200,14 +325,14 @@ module.exports = {
                         }
                     )
                 })
-    
+
                 let bot = JSON.parse(fs.readFileSync(`./src/dataBase/bot.json`))
-                
+
                 for (let i = 0; bot.state.length <= days; i++) {
-                    bot.state.unshift(0)   
+                    bot.state.unshift(0)
                 }
-    
-                const arr = bot.state.splice(-days).map(e => {return e / 60000 / 60})
+
+                const arr = bot.state.splice(-days).map(e => { return e / 60000 / 60 })
                 botUsers.push(
                     {
                         type: "bar",
@@ -217,48 +342,48 @@ module.exports = {
                         data: arr
                     }
                 )
-    
+
                 const line_chart = ChartJSImage().chart({
                     type: "bar",
-                    
+
                     options: {
                         plugins: {
-                          title: {
-                            display: true,
-                            text: 'KayFen'
-                          },
+                            title: {
+                                display: true,
+                                text: 'KayFen'
+                            },
                         },
                         responsive: true,
                         scales: {
                             x: {
-                              stacked: true,
+                                stacked: true,
                             },
                             y: {
-                              stacked: true
+                                stacked: true
                             }
-                          }
+                        }
                     },
                     data: {
-                        
+
                         labels: dates,
                         datasets: botUsers
-                            // {
-                            //     type: "line",
-                            //     label: "Борис",
-                            //     borderColor: "rgb(255, 99,132)",
-                            //     backgroundColor: "rgba(255, 99, 132, 0.5)",
-                            //     data: time
-                            // },
-                            // {
-                            //     type: "line",
-                            //     label: "Денис",
-                            //     borderColor: "rgba(255, 99,132)",
-                            //     backgroundColor: "rgba(0, 0, 0, 0.5)",
-                            //     data: [0,3,0,20]
-                            // },
+                        // {
+                        //     type: "line",
+                        //     label: "Борис",
+                        //     borderColor: "rgb(255, 99,132)",
+                        //     backgroundColor: "rgba(255, 99, 132, 0.5)",
+                        //     data: time
+                        // },
+                        // {
+                        //     type: "line",
+                        //     label: "Денис",
+                        //     borderColor: "rgba(255, 99,132)",
+                        //     backgroundColor: "rgba(0, 0, 0, 0.5)",
+                        //     data: [0,3,0,20]
+                        // },
                     },
-    
-                    
+
+
                 }) // Line chart
                     .backgroundColor('rgba(255,255,255,1)')
                     .width(500) // 500px
@@ -269,17 +394,17 @@ module.exports = {
             function getLastNDays(n) {
                 const dates = [];
                 for (let i = n - 1; i >= 0; i--) {
-                  const date = new Date();
-                  date.setDate(date.getDate() - i);
-                  const day = ("0" + date.getDate()).slice(-2);
-                  const month = ("0" + (date.getMonth() + 1)).slice(-2);
-                  const formattedDate = `${day}.${month}`;
-                  dates.push(formattedDate);
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    const day = ("0" + date.getDate()).slice(-2);
+                    const month = ("0" + (date.getMonth() + 1)).slice(-2);
+                    const formattedDate = `${day}.${month}`;
+                    dates.push(formattedDate);
                 }
                 return dates;
-              }
+            }
             const imge = await generateChart(getLastNDays(7), 7, false);
-            
+
             const json = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'));
             let channel = await client.channels.cache.get("1061911188528693358");
             let message
@@ -295,10 +420,10 @@ module.exports = {
             users.forEach(e => {
                 let user = JSON.parse(fs.readFileSync(`./src/dataBase/users/${e}`))
                 let user_time = 0
-                user.state.forEach((e)=>{
+                user.state.forEach((e) => {
                     user_time += e
                 })
-                users_time += `**${user.userName}:** \`${Math.round(user_time/60000/60)}ч, ${Math.round(user_time/60000%60)}м\`\n`
+                users_time += `**${user.userName}:** \`${Math.round(user_time / 60000 / 60)}ч, ${Math.round(user_time / 60000 % 60)}м\`\n`
             })
 
             const messageId = json.message_stats;
@@ -314,44 +439,45 @@ module.exports = {
             const embed_components = {
                 embeds: [new EmbedBuilder()
                     .setTitle('📈 График активности')
-                    .setDescription(`График обновляеться каждые 5 минут, у каждого будет свой рандомный цвет который тоже месяетсья, ярко зелёный квадрат это общее время активности(Собраний)\n **Общая статистика за всё время:** \n${users_time}**Время собраний:** \`${Math.round(total_time/60000/60)}ч, ${Math.round(total_time/60000%60)}м\`\n\n**Среднее время собраний за неделю:** \`${Math.round(avg/60000/60)}ч, ${Math.round(avg/60000%60)}м\``)
+                    .setDescription(`График обновляеться каждые 5 минут, у каждого будет свой рандомный цвет который тоже месяетсья, ярко зелёный квадрат это общее время активности(Собраний)\n **Общая статистика за всё время:** \n${users_time}**Время собраний:** \`${Math.round(total_time / 60000 / 60)}ч, ${Math.round(total_time / 60000 % 60)}м\`\n\n**Среднее время собраний за неделю:** \`${Math.round(avg / 60000 / 60)}ч, ${Math.round(avg / 60000 % 60)}м\``)
                     .setColor(Colors.Green)
                     .setTimestamp(Date.now())
                 ], components: [new ActionRowBuilder()
-                        .addComponents([
-                            new ButtonBuilder()
-                                .setCustomId('stat_week')
-                                .setLabel('за неделю')
-                                .setStyle(ButtonStyle.Primary)
-                                .setDisabled(true),
-                            new ButtonBuilder()
-                                .setCustomId('stat_mounth')
-                                .setLabel('за месяц')
-                                .setStyle(ButtonStyle.Secondary)
-                                .setDisabled(true),
-                            new ButtonBuilder()
-                                .setCustomId('stat_Xmounth')
-                                .setLabel('за 3 месяця')
-                                .setStyle(ButtonStyle.Secondary)
-                                .setDisabled(true),
-                            new ButtonBuilder()
-                                .setCustomId('stat_year')
-                                .setLabel('за год')
-                                .setStyle(ButtonStyle.Secondary)
-                                .setDisabled(true)
-                        ])], files: [await imge]
+                    .addComponents([
+                        new ButtonBuilder()
+                            .setCustomId('stat_week')
+                            .setLabel('за неделю')
+                            .setStyle(ButtonStyle.Primary)
+                            .setDisabled(true),
+                        new ButtonBuilder()
+                            .setCustomId('stat_mounth')
+                            .setLabel('за месяц')
+                            .setStyle(ButtonStyle.Secondary)
+                            .setDisabled(true),
+                        new ButtonBuilder()
+                            .setCustomId('stat_Xmounth')
+                            .setLabel('за 3 месяця')
+                            .setStyle(ButtonStyle.Secondary)
+                            .setDisabled(true),
+                        new ButtonBuilder()
+                            .setCustomId('stat_year')
+                            .setLabel('за год')
+                            .setStyle(ButtonStyle.Secondary)
+                            .setDisabled(true)
+                    ])], files: [await imge]
             }
             if (!message) {
                 message = await channel.send(embed_components);
                 json.message_stats = message;
-        
+
                 fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(json));
             } else {
                 message.edit(embed_components);
             }
         }
         updateState()
-        setInterval(()=>{
+        setInterval(() => {
+            cheakVotes()
             updateState()
         }, 300000)
 
@@ -373,7 +499,7 @@ module.exports = {
             let user_name_description = [];
             gameTable[0].forEach((user, i) => user_name_description.push({ name: user, value: `\`\`\`js\n${gameTable[1][i]}\`\`\``, inline: true }))
 
-            
+
             const embed_components = {
                 embeds: [new EmbedBuilder()
                     .setTitle('🐸 Подать заявку 🪪')
@@ -381,23 +507,23 @@ module.exports = {
                     .addFields(user_name_description)
                     .setColor(Colors.Green)
                     .setTimestamp(Date.now()),
-                    new EmbedBuilder()
-                        .setTitle('🖥️ ПК игры')
-                        .setDescription(gameTable[2]+gameTable[3])
-                        .setColor(Colors.Green)
-                        .setTimestamp(Date.now())
+                new EmbedBuilder()
+                    .setTitle('🖥️ ПК игры')
+                    .setDescription(gameTable[2] + gameTable[3])
+                    .setColor(Colors.Green)
+                    .setTimestamp(Date.now())
                 ], components: [new ActionRowBuilder()
-                        .addComponents([
-                            new ButtonBuilder()
-                                .setCustomId('register')
-                                .setLabel('✍️ Подать заявку')
-                                .setStyle('3')
-                        ])]
+                    .addComponents([
+                        new ButtonBuilder()
+                            .setCustomId('register')
+                            .setLabel('✍️ Подать заявку')
+                            .setStyle('3')
+                    ])]
             }
             if (!message) {
                 message = await channel.send(embed_components);
                 json.message_register_id = message;
-        
+
                 fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(json));
             } else {
                 message.edit(embed_components);
@@ -410,63 +536,63 @@ module.exports = {
 
             const users = fs.readdirSync(`./src/dataBase/users`)
             users.forEach(e => {
-              let user = JSON.parse(fs.readFileSync(`./src/dataBase/users/${e}`))
-              user.state.push(0)
-              fs.writeFileSync(`./src/dataBase/users/${e}`, JSON.stringify(user))
+                let user = JSON.parse(fs.readFileSync(`./src/dataBase/users/${e}`))
+                user.state.push(0)
+                fs.writeFileSync(`./src/dataBase/users/${e}`, JSON.stringify(user))
             })
-            
-            
+
+
             // Check if any of the user's birthdays match today's date
             users.forEach(async userJSON => {
-              const user = JSON.parse(fs.readFileSync(`./src/dataBase/users/${userJSON}`))
-              console.log(today.getFullYear() +'/'+user.data.happyDate.substring(6, 10));
-              console.log(`Date: `+`${padString(today.getDate())}.${padString(today.getMonth() + 1)} / ${user.data.happyDate.substring(0, 5)}`);
-              
-              if (user.data.happyDate.substring(0, 5) === `${padString(today.getDate())}.${padString(today.getMonth() + 1)}`) {
-                const response = await openai.createCompletion({
-                    model: "text-davinci-003",
-                    prompt: `Твоя задача написать поздравление на день рождения для ${user.userName} ему исполняеться ${today.getFullYear() - user.data.happyDate.substring(6, 10)} лет. Ты находишься в дискорд сервере так что сделай это поздравление для ${user.userName} самым лучшим. Ты находишься на сервере "ХАЖАБА", где друзья общаються и играют в игры месте. Так же у нас есть описание которое ${user.userName} написал о себе при регестрации: "${user.data.discription}"(там может быть хлам). Можешь написать цытату(начиная с "> "), стих и само поздравлнеие`,
-                    temperature: 0.9,
-                    max_tokens: 2000,
-                    top_p: 1,
-                    frequency_penalty: 0.0,
-                    presence_penalty: 0.6,
-                  });
-                client.channels.cache.get('1061912734582718505').send(`@everyone, сегодня у **${user.userName}а** день рождения! Ему исполнилось ${today.getFullYear() - user.data.happyDate.substring(6, 10)} 🎂🎉\n${response.data.choices[0].text}`).then(message => {
-                    message.react('🎁');
-                });
-            } else if (user.data.happyDate.substring(0, 5) === `${padString(today.getDate() + 1)}.${padString(today.getMonth() + 1)}`) {
-                client.channels.cache.get('1061912734582718505').send(`@everyone, завтра у **${user.userName}а** будет день рождение! Ему исполниться ${today.getFullYear() - user.data.happyDate.substring(6, 10)} лет 🎁`).then(message => {
-                    message.react('🎀');
-                });
-            } else if (user.data.happyDate.substring(0, 5) === `${padString(today.getDate() + 3)}.${padString(today.getMonth() + 1)}`) {
-                client.channels.cache.get('1061912734582718505').send(`@everyone, через 3 дня у **${user.userName}а** будет день рождение! Ему исполниться ${today.getFullYear() - user.data.happyDate.substring(6, 10)} лет 🎀`).then(message => {
-                    message.react('❤️‍🔥');
-                });
-            } else if (user.data.happyDate.substring(0, 5) === `${padString(today.getDate() + 7)}.${padString(today.getMonth() + 1)}`) {
-                client.channels.cache.get('1061912734582718505').send(`@everyone, через неделю у **${user.userName}а** будет день рождение! Ему исполниться ${today.getFullYear() - user.data.happyDate.substring(6, 10)} лет 😲`).then(message => {
-                    message.react('🤚🏻');
-                });
-            } else if (user.data.happyDate.substring(0, 5) === `${padString(today.getDate())}.${padString(today.getMonth() + 2)}`) {
-                client.channels.cache.get('1061912734582718505').send(`@everyone, через месяц у **${user.userName}а** будет день рождение! Ему исполниться ${today.getFullYear() - user.data.happyDate.substring(6, 10)} лет 😇`).then(message => {
-                    message.react('👍');
-                });
-            }
+                const user = JSON.parse(fs.readFileSync(`./src/dataBase/users/${userJSON}`))
+                console.log(today.getFullYear() + '/' + user.data.happyDate.substring(6, 10));
+                console.log(`Date: ` + `${padString(today.getDate())}.${padString(today.getMonth() + 1)} / ${user.data.happyDate.substring(0, 5)}`);
+
+                if (user.data.happyDate.substring(0, 5) === `${padString(today.getDate())}.${padString(today.getMonth() + 1)}`) {
+                    const response = await openai.createCompletion({
+                        model: "text-davinci-003",
+                        prompt: `Твоя задача написать поздравление на день рождения для ${user.userName} ему исполняеться ${today.getFullYear() - user.data.happyDate.substring(6, 10)} лет. Ты находишься в дискорд сервере так что сделай это поздравление для ${user.userName} самым лучшим. Ты находишься на сервере "ХАЖАБА", где друзья общаються и играют в игры месте. Так же у нас есть описание которое ${user.userName} написал о себе при регестрации: "${user.data.discription}"(там может быть хлам). Можешь написать цытату(начиная с "> "), стих и само поздравлнеие`,
+                        temperature: 0.9,
+                        max_tokens: 2000,
+                        top_p: 1,
+                        frequency_penalty: 0.0,
+                        presence_penalty: 0.6,
+                    });
+                    client.channels.cache.get('1061912734582718505').send(`@everyone, сегодня у **${user.userName}а** день рождения! Ему исполнилось ${today.getFullYear() - user.data.happyDate.substring(6, 10)} 🎂🎉\n${response.data.choices[0].text}`).then(message => {
+                        message.react('🎁');
+                    });
+                } else if (user.data.happyDate.substring(0, 5) === `${padString(today.getDate() + 1)}.${padString(today.getMonth() + 1)}`) {
+                    client.channels.cache.get('1061912734582718505').send(`@everyone, завтра у **${user.userName}а** будет день рождение! Ему исполниться ${today.getFullYear() - user.data.happyDate.substring(6, 10)} лет 🎁`).then(message => {
+                        message.react('🎀');
+                    });
+                } else if (user.data.happyDate.substring(0, 5) === `${padString(today.getDate() + 3)}.${padString(today.getMonth() + 1)}`) {
+                    client.channels.cache.get('1061912734582718505').send(`@everyone, через 3 дня у **${user.userName}а** будет день рождение! Ему исполниться ${today.getFullYear() - user.data.happyDate.substring(6, 10)} лет 🎀`).then(message => {
+                        message.react('❤️‍🔥');
+                    });
+                } else if (user.data.happyDate.substring(0, 5) === `${padString(today.getDate() + 7)}.${padString(today.getMonth() + 1)}`) {
+                    client.channels.cache.get('1061912734582718505').send(`@everyone, через неделю у **${user.userName}а** будет день рождение! Ему исполниться ${today.getFullYear() - user.data.happyDate.substring(6, 10)} лет 😲`).then(message => {
+                        message.react('🤚🏻');
+                    });
+                } else if (user.data.happyDate.substring(0, 5) === `${padString(today.getDate())}.${padString(today.getMonth() + 2)}`) {
+                    client.channels.cache.get('1061912734582718505').send(`@everyone, через месяц у **${user.userName}а** будет день рождение! Ему исполниться ${today.getFullYear() - user.data.happyDate.substring(6, 10)} лет 😇`).then(message => {
+                        message.react('👍');
+                    });
+                }
             });
-          };
-          
-          const runSendHappyBirthday = () => {
+        };
+
+        const runSendHappyBirthday = () => {
             const today = new Date();
 
             const botData = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'));
-            
+
             if (botData.happyCheckDate === undefined || today.toDateString() !== new Date(botData.happyCheckDate).toDateString()) {
-              sendHappyBirthday();
-              botData.state.push(0)
-              botData.happyCheckDate = today;
-              fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(botData));
+                sendHappyBirthday();
+                botData.state.push(0)
+                botData.happyCheckDate = today;
+                fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(botData));
             }
-          }; runSendHappyBirthday()
+        }; runSendHappyBirthday()
         setInterval(() => {
             runSendHappyBirthday()
         }, 300000)

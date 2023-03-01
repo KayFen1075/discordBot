@@ -1,6 +1,7 @@
 const { Events, ButtonStyle, StringSelectMenuBuilder, UserSelectMenuBuilder, Client, ActionRowBuilder, ButtonBuilder, GatewayIntentBits, EmbedBuilder, PermissionsBitField, Permissions, MessageManager, Embed, Collection, Colors, Message, ChannelType } = require('discord.js');
 const fs = require('fs');
 const { execute } = require('./ready');
+const { fileLog } = require('../functions/logs')
 
 const { get_game_list, check_game_in_list } = require('../functions/listFunc.js')
 
@@ -178,6 +179,9 @@ module.exports = {
                     time_start: Date.now()
                 }; 
                 setTimeout(()=>{
+                    if (interaction.message) {
+                        interaction.message.delete()    
+                    }
                     interaction.message.delete()
                 }, 5000)
                 const chech_users = setInterval(async ()=>{
@@ -196,6 +200,9 @@ module.exports = {
                     }
                 }, 300000)
                 interaction.reply({ content: 'GayPaty StaRt', ephemeral: true })
+                fileLog(`[MEET] ${interaction.user.username} создал собрание с ${userList} в ${voiceChannel.name} (${voiceChannel.id})
+Участники собрания: ${interaction.values.join(', ')}
+Время начала: ${new Date(meet.time_start).toLocaleString()}`)
                 fs.writeFileSync(`./src/dataBase/meets/${interaction.user.id}.json`, JSON.stringify(meet))
             }
         } else if (interaction.options.get('subject')) {

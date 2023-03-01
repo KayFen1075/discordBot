@@ -4,6 +4,7 @@ const { game_table } = require('../functions/listFunc.js')
 const fs = require('fs')
 
 const { Configuration, OpenAIApi } = require("openai");
+const { fileLog } = require('../functions/logs.js');
 
 
 const configuration = new Configuration({
@@ -68,6 +69,7 @@ AI:`,
             let bot = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'))
              bot.recomend = responseText
              fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(bot))
+             fileLog(`[RECOMEND] ${interaction.user.username} (${interaction.user.id}) получил рекомендацию: ${responseText}`)
         } catch (error) {
             console.error;
         }

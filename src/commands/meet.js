@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, PermissionsBitField, Colors } = require('discord.js');
 const { execute } = require('./list');
 const fs = require('fs');
+const { fileLog } = require('../functions/logs')
 const { EmbedBuilder } = require('@discordjs/builders');
 module.exports = {
     data: new SlashCommandBuilder()
@@ -65,6 +66,7 @@ module.exports = {
                         fs.writeFileSync(`./src/dataBase/bot.json`, JSON.stringify(bot))
                     
                         meetChannel.send(`<@${interaction.user.id}> закрыл собрание, еслии быть точнее то этот ебан вышел из своего же собрания`)
+                        fileLog(`[MEET] ${interaction.user.tag} закрыл собрание, еслии быть точнее то этот ебан вышел из своего же собрания`)
                     await interaction.reply({content: `Вы удалили собрание`, ephemeral: true})
                     fs.unlinkSync(`./src/dataBase/meets/${interaction.user.id}.json`)
                 } else {
@@ -75,6 +77,7 @@ module.exports = {
                     voiceChannel.send(`<@${interaction.user.id}> покинул собрание`)
                     meet.users_list = meet.users_list.filter(item => item !== interaction.user.id)
                     interaction.reply({content: `Вы покинули собрание`, ephemeral: true})
+                    fileLog(`[MEET] ${interaction.user.tag} покинул собрание ${interaction.options.get('user').value}`)
                     fs.writeFileSync(`./src/dataBase/meets/${interaction.options.get('user').value}.json`, JSON.stringify(meet))
                 }
             } else {
@@ -97,7 +100,7 @@ module.exports = {
                     voiceChannel.send(`<@${interaction.options.get('user').value}> выгнали из собрания`)
 
                     voiceChannel.permissionOverwrites.delete(interaction.guild.members.cache.get(interaction.options.get('user').value));
-                    
+                    fileLog(`[MEET] ${interaction.user.tag} выгнал ${interaction.options.get('user').value} из собрания`)
                 } else {
                     interaction.reply({ content: `Этого пользователя нету на собрании`, ephemeral: true })
                 }
@@ -129,7 +132,7 @@ module.exports = {
                 fs.writeFileSync(`./src/dataBase/meets/${interaction.user.id}.json`, JSON.stringify(meet))
 
                 voiceChannel.send(`<@${interaction.options.get('user').value}> добавили в собрание`)
-
+                fileLog(`[MEET] ${interaction.user.tag} добавил ${interaction.options.get('user').value} в собрание`)
                 voiceChannel.permissionOverwrites.create(interaction.options.get('user').value, { ViewChannel: true })
                 } else {
                     interaction.reply({content: `<@${interaction.options.get('user').value}> уже есть в собрании`, ephemeral: true})
@@ -140,7 +143,7 @@ module.exports = {
             }
         }
 
-
+        // end meet
         else if (interaction.options._subcommand === 'end') {
             if (fs.existsSync(`./src/dataBase/meets/${interaction.user.id}.json`)) {
                 let meet = JSON.parse(fs.readFileSync(`./src/dataBase/meets/${interaction.user.id}.json`))
@@ -157,6 +160,7 @@ module.exports = {
 
                 voiceChannel.delete();
                 await interaction.reply({content: `Вы удалили собрание`, ephemeral: true})
+                fileLog(`[MEET] ${interaction.user.tag} удалил собрание`)
                 fs.unlinkSync(`./src/dataBase/meets/${interaction.user.id}.json`)
             } else {
                 interaction.reply({content: `Вы не проводите собрание`, ephemeral: true})

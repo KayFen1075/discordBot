@@ -52,6 +52,7 @@ module.exports = {
             setTimeout(async () => {
                 await waitMessage.delete()
             }, 3000);
+            fileLog(`[CHATGPT] ${message.author.username} (${message.author.id}) отправил запрос: ${message.content}; Ответ: ${response.data.choices[0].text}`)
         }
     }
 }

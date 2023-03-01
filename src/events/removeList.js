@@ -2,6 +2,7 @@ const { Events, Client, ActionRowBuilder, ButtonBuilder, GatewayIntentBits, Embe
 const { game_table } = require('../functions/listFunc.js')
 const { execute } = require('./ready')
 const fs = require('fs');
+const { fileLog } = require('../functions/logs')
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -40,6 +41,7 @@ module.exports = {
                         .setDescription(`**${userr.userName}** удалил из списка \`${interaction.values}\`(PC), после удаления у него такие игры:\n\`\`\`${userr.data.games}\`\`\``)
                         .setTimestamp(Date.now())
                     ] })
+                fileLog(`[LIST] ${userr.userName} удалил из списка ${interaction.values} (PC), после удаления у него такие игры: ${userr.data.games}`)
         
             } else if (interaction.customId === 'remove_android_games') {
 
@@ -66,6 +68,8 @@ module.exports = {
                         .setDescription(`**${userr.userName}** удалил из списка \`${interaction.values}\`(Android), после удаления у него такие игры:\n\`\`\`${userr.data.android_games}\`\`\``)
                         .setTimestamp(Date.now())
                     ] })
+                fileLog(`[LIST] ${userr.userName} удалил из списка ${interaction.values} (Android), после удаления у него такие игры: ${userr.data.android_games}`)
+                
             }
             async function updateList() {
                 const json = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'));
