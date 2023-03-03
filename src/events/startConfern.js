@@ -170,6 +170,10 @@ module.exports = {
                         .setColor(Colors.Yellow)
                         .setDescription(`Вы выбрали: \n${await userList}\n\`\`\`${userr.createEvent.setup1}\`\`\`\n скоро начнёться собрание`)],
                     tts: true,
+                    components: [new ActionRowBuilder().addComponents([new ButtonBuilder()
+                        .setCustomId('ready_meet')
+                        .setLabel('Готов')
+                        .setStyle(ButtonStyle.Success)])]
                 })
 
                 let meet = {
@@ -179,10 +183,7 @@ module.exports = {
                     time_start: Date.now()
                 }; 
                 setTimeout(()=>{
-                    if (interaction.message) {
-                        interaction.message.delete()    
-                    }
-                    interaction.message.delete()
+                    interaction.message.delete()    
                 }, 5000)
                 const chech_users = setInterval(async ()=>{
                     const members = await voiceChannel.members.filter(member => !member.user.bot);

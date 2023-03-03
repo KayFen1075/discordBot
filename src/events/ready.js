@@ -11,6 +11,7 @@ const openai = new OpenAIApi(configuration);
 
 const ChartJSImage = require('chart.js-image');
 const { fileLog } = require('../functions/logs.js');
+const { endVote } = require('../functions/endVote')
 
 
 module.exports = {
@@ -38,122 +39,6 @@ module.exports = {
                 ], embeds: [message]
             })
 
-        // end vote
-        async function endVote(id) {
-            // get data
-            let data = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'))
-            let vote = data.votes.find(e => e.id == id)
-            let users = fs.readdirSync('./src/dataBase/users')
-            let votes = {} // object with votes {vote: count}} 
-
-            const channel = await client.channels.cache.get(vote.channel)
-
-            const messageVotes = await channel.messages.fetch(vote.message)
-            console.log(messageVotes);
-
-            // check if 0 users voted
-            if (vote.votes_users.length == 0) {
-
-                const editedMessage = {
-                    content: `@everyone Голосование ${vote.id} завершено!`,
-                    embeds: [
-                        new EmbedBuilder()
-                            .setTitle(`Голосование ${vote.id}`)
-                            .setDescription(`**Вопрос:** ${vote.question}\n**Варианты ответов:**\n${vote.choices.join('\n')}\n\n**Результаты:**\nНикто не проголосовал\n**Было дано времени:** ${vote.time}\n**Победитель:** Никто`)
-                            .setColor(Colors.Green)
-                            .setTimestamp(Date.now())
-                    ]
-                }
-                // edit vote message 
-                await messageVotes.edit(editedMessage)
-                return
-            }
-            
-            // sum votes
-            vote.choices.forEach(e => {
-                if (vote.votes_users.filter(e2 => e2.vote == e).length != 0) {
-                    votes[e] = vote.votes_users.filter(e2 => e2.vote == e).length
-                } else {
-                    votes[e] = 0
-                }
-            })
-
-            // get max vote
-            let max = 0
-            let maxVote = ''
-            for (const key in votes) {
-                if (votes[key] == max) {
-                    maxVote = `Ничья у ${key} и ${maxVote}`
-                }
-                if (votes[key] > max) {
-                    max = votes[key]
-                    maxVote = key
-                }
-            }
-
-            // users not voted
-            let usersNotVoted = []
-            users.forEach(e => {
-                user = e.replace('.json', '')
-                if (!vote.votes_users.find(e2 => e2.id == user)) {
-                    usersNotVoted.push(user)
-                }
-            })
-            // set users not voted to <@user>
-            usersNotVoted = usersNotVoted.map(e => `<@${e}>`)
-            console.log(usersNotVoted);
-
-            // get users voted id
-            let usersVoted = []
-            vote.votes_users.forEach(e => {
-                usersVoted.push(e.user)
-            })
-            console.log(usersVoted);
-
-            // get statistics in % for each vote
-            let statistics = []
-            for (const key in votes) {
-                // add progress bar and check users voted for this vote
-                if (votes[key] == 0) {
-                    statistics.push(`${key}: 0%\n` + '▬')
-                    continue
-                }
-                statistics.push(`${key}: ${Math.round(votes[key] / usersVoted.length * 100)}%\n` + '▬'.repeat(Math.round(votes[key] / usersVoted.length * 10)))
-            }
-
-            // edit vote message, disable buttons and green color for winner
-            let components = []
-            vote.choices.forEach(async e => {
-                // check draw
-                if (maxVote.includes('Ничья')) {
-                    components.push(new ButtonBuilder().setCustomId(`vote_${vote.id}_${e}`).setLabel(e).setStyle(3).setDisabled(true))
-                    return
-                }
-
-                if (e == maxVote) {
-                    components.push(new ButtonBuilder().setCustomId(`vote_${vote.id}_${e}`).setLabel(e).setStyle(3).setDisabled(true))
-                } else {
-                    components.push(new ButtonBuilder().setCustomId(`vote_${vote.id}_${e}`).setLabel(e).setStyle(4).setDisabled(true))
-                }
-            })
-            
-            await messageVotes.edit({
-                content: `Голосование ${vote.id} завершено!`,
-                embeds: [
-                    new EmbedBuilder()
-                        .setTitle(vote.title)
-                        .setDescription(`**Вопрос:** ${vote.description}\n**Не проголосовали:** ${usersNotVoted.join(', ')}\n**Результаты:**\n${statistics.join('\n')}\n\n**Было дано времени:** ${vote.time}\n**Победитель:** ${maxVote}`)
-                        .setColor(vote.color)
-                        .setTimestamp(Date.now())
-                ],
-                components: [new ActionRowBuilder().addComponents(components)]
-            })
-
-            // delete vote from data
-            data.votes.splice(data.votes.indexOf(vote), 1)
-            fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(data))
-            fileLog(`[VOTE] Голосование ${vote.id} завершено! Победитель: ${maxVote} (${votes[maxVote]} голосов) (Не проголосовали: ${usersNotVoted.join(', ')})`)
-    }
 
     
         // check votes
@@ -164,24 +49,24 @@ module.exports = {
             data.forEach(async e => {
                 if (e.votes_users.length == users.length) {
                     console.log(`Все пользователи проголосовали, голосование ${e.id} завершено`);
-                    await endVote(e.id)
+                    await endVote(e.id, client)
                 }
                 switch (e.time) {
-                    case '1m': { if (Date.now() - e.startVote >=   60000 ) { await endVote(e.id) } break; }
-                    case '5m': { if (Date.now() - e.startVote >=   300000 ) { await endVote(e.id) } break; }
-                    case '10m': { if (Date.now() - e.startVote >=  600000 ) { await endVote(e.id) } break; }
-                    case '30m': { if (Date.now() - e.startVote >=  1800000 ) { await endVote(e.id) } break; }
-                    case '1h': { if (Date.now() - e.startVote >=   3600000 ) { await endVote(e.id) } break; }
-                    case '2h': { if (Date.now() - e.startVote >=   7200000 ) { await endVote(e.id) } break; }
-                    case '6h': { if (Date.now() - e.startVote >=   21600000 ) { await endVote(e.id) } break; }
-                    case '12h': { if (Date.now() - e.startVote >=  43200000 ) { await endVote(e.id) } break; }
-                    case '1d': { if (Date.now() - e.startVote >=   86400000 ) { await endVote(e.id) } break; }
-                    case '2d': { if (Date.now() - e.startVote >=   172800000 ) { await endVote(e.id) } break; }
-                    case '3d': { if (Date.now() - e.startVote >=   259200000 ) { await endVote(e.id) } break; }
-                    case '4d': { if (Date.now() - e.startVote >=   345600000 ) { await endVote(e.id) } break; }
-                    case '5d': { if (Date.now() - e.startVote >=   432000000 ) { await endVote(e.id) } break; }
-                    case '6d': { if (Date.now() - e.startVote >=   518400000 ) { await endVote(e.id) } break; }
-                    case '7d': { if (Date.now() - e.startVote >=   604800000 ) { await endVote(e.id) } break; }
+                    case '1m': { if (Date.now() - e.startVote >=   60000 ) { await endVote(e.id, client) } break; }
+                    case '5m': { if (Date.now() - e.startVote >=   300000 ) { await endVote(e.id, client) } break; }
+                    case '10m': { if (Date.now() - e.startVote >=  600000 ) { await endVote(e.id, client) } break; }
+                    case '30m': { if (Date.now() - e.startVote >=  1800000 ) { await endVote(e.id, client) } break; }
+                    case '1h': { if (Date.now() - e.startVote >=   3600000 ) { await endVote(e.id, client) } break; }
+                    case '2h': { if (Date.now() - e.startVote >=   7200000 ) { await endVote(e.id, client) } break; }
+                    case '6h': { if (Date.now() - e.startVote >=   21600000 ) { await endVote(e.id, client) } break; }
+                    case '12h': { if (Date.now() - e.startVote >=  43200000 ) { await endVote(e.id, client) } break; }
+                    case '1d': { if (Date.now() - e.startVote >=   86400000 ) { await endVote(e.id, client) } break; }
+                    case '2d': { if (Date.now() - e.startVote >=   172800000 ) { await endVote(e.id, client) } break; }
+                    case '3d': { if (Date.now() - e.startVote >=   259200000 ) { await endVote(e.id, client) } break; }
+                    case '4d': { if (Date.now() - e.startVote >=   345600000 ) { await endVote(e.id, client) } break; }
+                    case '5d': { if (Date.now() - e.startVote >=   432000000 ) { await endVote(e.id, client) } break; }
+                    case '6d': { if (Date.now() - e.startVote >=   518400000 ) { await endVote(e.id, client) } break; }
+                    case '7d': { if (Date.now() - e.startVote >=   604800000 ) { await endVote(e.id, client) } break; }
                 }
             })
         }; cheakVotes() 

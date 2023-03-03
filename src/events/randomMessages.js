@@ -1,6 +1,7 @@
 const { Events, GuildScheduledEventManager } = require('discord.js')
 const { execute } = require('./ready')
 const { fileLog } = require('../functions/logs')
+const { giveAdvanced } = require('../functions/giveAdvanced')
 
 module.exports = {
     name: Events.MessageCreate,
@@ -16,6 +17,7 @@ module.exports = {
                 msg.react('👍🏿')
             }
             if (message.channel.parentId === '1071945596090462238') {
+                giveAdvanced(message.client, 'Архиолог', message.author.id)
                 message.channel.setPosition(0)
             }
         } 

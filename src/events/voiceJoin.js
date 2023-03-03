@@ -4,6 +4,7 @@ const { VoiceConnectionStatus, AudioPlayerStatus, createAudioPlayer, NoSubscribe
 const fs = require('fs');
 const { Interaction } = require('chart.js');
 const internal = require('stream');
+const { giveAdvanced } = require('../functions/giveAdvanced');
 
 module.exports = {
     name: Events.VoiceStateUpdate,
@@ -29,10 +30,25 @@ module.exports = {
                 let user = JSON.parse(fs.readFileSync(`./src/dataBase/users/${newState.member.user.id}.json`))
                 console.log(`${user.state[user.state.length - 1]} / ${oldTime}`);
                 if (newState.member.voice.channelId === newUserChannel.id && user.state[user.state.length - 1] !== oldTime) {
-                        user.state[user.state.length - 1] = user.state[user.state.length - 1] + 5000
-                        oldTime = user.state[user.state.length - 1] + 5000
-                        console.log(user.userName +' '+ user.state[user.state.length - 1]);
-                        fs.writeFileSync(`./src/dataBase/users/${newState.member.user.id}.json`, JSON.stringify(user))
+                    user.state[user.state.length - 1] = user.state[user.state.length - 1] + 5000
+                    oldTime = user.state[user.state.length - 1] + 5000
+                    console.log(user.userName +' '+ user.state[user.state.length - 1]);
+                    fs.writeFileSync(`./src/dataBase/users/${newState.member.user.id}.json`, JSON.stringify(user))
+
+                    // give advanced if user is in voice channel for 10 hour or 50 hour or 125 hour
+
+                    let user_time = 0
+                    user.state.forEach((e) => {
+                        user_time += e
+                    })
+                    
+                    if (user_time >= 36000000) {
+                        giveAdvanced(newState.client, 'Проверка пройдена', newState.member.user.id)
+                    } else if (user_time >= 180000000) {
+                        giveAdvanced(newState.client, 'Полноценный участник ХАЖАБЫ', newState.member.user.id)
+                    } else if (user_time >= 450000000) {
+                        giveAdvanced(newState.client, 'Истенный олд', newState.member.user.id)
+                    }
                 } else {
                     clearInterval(timeGame)
                 }
@@ -64,6 +80,11 @@ module.exports = {
                     newUserChannel.send(`${ping} все в сборе!\nБыло начато собрание по \`${meet.games_list}\`, создатель <@${creatorId}>`)
                 } else {
                     newUserChannel.send(`${ping} все в сборе, начинаем голосование на выбор во что поиграть! Варианты которые выбрал <@${creatorId}>: \`\`\`js\n${meet.games_list}\`\`\`Выберите один вариант в меню`)
+                }
+                if (5 === members.size && meet.games_list.find('cs:go')) {
+                    meet.users_list.forEach((e) => {
+                        giveAdvanced(newState.client, 'Пойти фулл стаком в кс', e)
+                    })
                 }
                 
             } else {

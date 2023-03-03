@@ -16,7 +16,11 @@ const client = new Client({
 client.commands = new Collection();
 
 // client.on('interactionCreate', (interaction) => {
-// 	interaction.channel.messages.cache.get(interaction.message.id)
+// 	interaction.client. /
+// })
+
+// client.on('ready', (Client) => {
+// 	console.log(client.application. /)
 // })
 
 const commandsPath = path.join(__dirname, 'commands');
@@ -46,4 +50,5 @@ for (const file of eventFiles) {
 }
 
 client.login(token)
+
 

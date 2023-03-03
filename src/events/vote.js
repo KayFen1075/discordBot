@@ -20,15 +20,15 @@ module.exports = {
                 let data = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'))
 
                 // check if vote exist
-                data.votes.forEach(e => {
-                    if (e.id !== arr[2]) {
-                        interaction.reply({
-                            content: 'Голосование не найдено',
-                            ephemeral: true
-                        })
-                        return
-                    }
-                })
+                // data.votes.forEach(e => {
+                //     if (e.id !== arr[2]) {
+                //         interaction.reply({
+                //             content: 'Голосование не найдено',
+                //             ephemeral: true
+                //         })
+                //         this.return
+                //     }
+                // })
                 // check vote if end
                 if (!data.votes.find(e => e.id == arr[2])) {
                     interaction.reply({
