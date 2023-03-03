@@ -125,6 +125,8 @@ async function endVote(id, client) {
         components: [new ActionRowBuilder().addComponents(components)]
     })
 
+    messageVotes.reply(`Голосование <@${vote.id}> завершено! Победитель: ${maxVote} (${votes[maxVote]} голосов) (Не проголосовали: ${usersNotVoted.join(', ')})`)
+
     // delete vote from data
     data.votes.splice(data.votes.indexOf(vote), 1)
     fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(data))

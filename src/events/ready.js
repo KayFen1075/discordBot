@@ -11,7 +11,8 @@ const openai = new OpenAIApi(configuration);
 
 const ChartJSImage = require('chart.js-image');
 const { fileLog } = require('../functions/logs.js');
-const { endVote } = require('../functions/endVote')
+const { endVote } = require('../functions/endVote');
+const { checkBoostTime, addBoost } = require('../functions/leveling.js');
 
 
 module.exports = {
@@ -228,7 +229,7 @@ module.exports = {
                     }
                 )
 
-                const line_chart = ChartJSImage().chart({
+                const line_chart = await ChartJSImage().chart({
                     type: "bar",
 
                     options: {
@@ -364,7 +365,8 @@ module.exports = {
         setInterval(() => {
             cheakVotes()
             updateState()
-        }, 300000)
+            checkBoostTime()
+        }, 30000)
 
         async function updateRegister() {
             const json = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'));
@@ -446,6 +448,7 @@ module.exports = {
                     client.channels.cache.get('1061912734582718505').send(`@everyone, сегодня у **${user.userName}а** день рождения! Ему исполнилось ${today.getFullYear() - user.data.happyDate.substring(6, 10)} 🎂🎉\n${response.data.choices[0].text}`).then(message => {
                         message.react('🎁');
                     });
+                    addBoost(client, userJSON.replace('.json', ''), 1.5, 259200000, 'С днём рождения! 🎂🎉')
                 } else if (user.data.happyDate.substring(0, 5) === `${padString(today.getDate() + 1)}.${padString(today.getMonth() + 1)}`) {
                     client.channels.cache.get('1061912734582718505').send(`@everyone, завтра у **${user.userName}а** будет день рождение! Ему исполниться ${today.getFullYear() - user.data.happyDate.substring(6, 10)} лет 🎁`).then(message => {
                         message.react('🎀');

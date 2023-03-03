@@ -24,14 +24,18 @@ module.exports = {
                 .setName('description')
                 .setDescription('Описание')
                 .setRequired(true))
+            .addNumberOption(option => option
+                .setName('reward')
+                .setDescription('Награда за достижение опыта')
+                .setRequired(true))
             .addStringOption(option => option
                 .setName('difficulty')
                 .setDescription('Сложность')
                 .setRequired(true)
                 .setChoices(
-                    { name: 'Легко', value: `Легко;${Colors.Grey}` },
-                    { name: 'Средне', value: `Средне;${Colors.Green}` },
-                    { name: 'Сложно', value: `Сложно;${Colors.Purple}` },
+                    { name: 'Легко',      value: `Легко;${Colors.Grey}` },
+                    { name: 'Средне',     value: `Средне;${Colors.Green}` },
+                    { name: 'Сложно',     value: `Сложно;${Colors.Purple}` },
                     { name: 'Легендарно', value: `Легендарно;${Colors.Yellow}` },
                     { name: 'Невозможно', value: `Невозможно;${Colors.Gold}` },
                 ))
@@ -83,6 +87,7 @@ module.exports = {
             const emoji = interaction.options.get('emoji').value;
             const name = interaction.options.get('name').value;
             const description = interaction.options.get('description').value;
+            const reward = interaction.options.get('reward').value;
             const difficulty = interaction.options.get('difficulty').value;
                     const color = Number(difficulty.split(';')[1])
                     const difficultyName = difficulty.split(';')[0]
@@ -95,8 +100,8 @@ module.exports = {
                 name: name,
                 description: description,
                 users: [],
-                difficulty: difficulty
-
+                difficulty: difficulty,
+                xp: reward
             });
 
             fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(data));
@@ -107,12 +112,19 @@ module.exports = {
                 .setColor(color)
                 .setTimestamp(Date.now())
 
-            interaction.reply({ content: '@here новое достижение!', embeds: [embed] });
-            fileLog(`[ADVENCED] Достижение успешно создано! (Название: ${name}, Эмодзи: ${emoji}, Описание: ${description}, Цвет: ${color}, Сложность: ${difficultyName})`);
+            interaction.reply({ content: '@here, новое достижение!', embeds: [embed] });
+            fileLog(`[ADVENCED] Достижение успешно создано! (Название: ${name}, Эмодзи: ${emoji}, Описание: ${description}, Цвет: ${color}, Сложность: ${difficultyName}) `);
         }
         
         // delete
         else if (subcommand === 'delete') {
+
+            //only for admins
+            if (!interaction.member.permissions.has(PermissionFlagsBits.Administrator)) {
+                interaction.reply({ content: 'У вас нет прав для выполнения этой команды!', ephemeral: true });
+                return
+            }
+
             const name = interaction.options.get('name').value;
             
             if (!data.advenced.find(x => x.name.toLowerCase() === name.toLowerCase())) {
@@ -141,7 +153,7 @@ module.exports = {
                 });
                 fileds.push({
                     name: `${e.emoji} ${e.name}`,
-                    value: `\`\`\`${e.description}\`\`\`Сложность: \`${e.difficulty.split(';')[0]}\`\nПолучили: ${users.join(', ')}`,
+                    value: `\`\`\`${e.description}\`\`\`Сложность: \`${e.difficulty.split(';')[0]}\` Награда: \`${e.xp}xp\`\nПолучили: ${users.join(', ')}`,
                     inline: false
                 });
             });

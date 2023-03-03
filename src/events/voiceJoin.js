@@ -5,6 +5,7 @@ const fs = require('fs');
 const { Interaction } = require('chart.js');
 const internal = require('stream');
 const { giveAdvanced } = require('../functions/giveAdvanced');
+const { xpAdd } = require('../functions/leveling');
 
 module.exports = {
     name: Events.VoiceStateUpdate,
@@ -30,8 +31,8 @@ module.exports = {
                 let user = JSON.parse(fs.readFileSync(`./src/dataBase/users/${newState.member.user.id}.json`))
                 console.log(`${user.state[user.state.length - 1]} / ${oldTime}`);
                 if (newState.member.voice.channelId === newUserChannel.id && user.state[user.state.length - 1] !== oldTime) {
-                    user.state[user.state.length - 1] = user.state[user.state.length - 1] + 5000
-                    oldTime = user.state[user.state.length - 1] + 5000
+                    user.state[user.state.length - 1] = user.state[user.state.length - 1] + 30000
+                    oldTime = user.state[user.state.length - 1] + 30000
                     console.log(user.userName +' '+ user.state[user.state.length - 1]);
                     fs.writeFileSync(`./src/dataBase/users/${newState.member.user.id}.json`, JSON.stringify(user))
 
@@ -49,10 +50,14 @@ module.exports = {
                     } else if (user_time >= 450000000) {
                         giveAdvanced(newState.client, 'Истенный олд', newState.member.user.id)
                     }
+
+                    // leveling system (client user id, xp add, message(undefined), channel)
+                    xpAdd(newState.client, newState.member.user.id, Math.floor(Math.random(1)*5), undefined, newState.member.voice.channel.id)
+
                 } else {
                     clearInterval(timeGame)
                 }
-            }, 5000)
+            }, 30000)
 
             const connection = joinVoiceChannel({
                 channelId: newUserChannel.id,
@@ -81,11 +86,11 @@ module.exports = {
                 } else {
                     newUserChannel.send(`${ping} все в сборе, начинаем голосование на выбор во что поиграть! Варианты которые выбрал <@${creatorId}>: \`\`\`js\n${meet.games_list}\`\`\`Выберите один вариант в меню`)
                 }
-                if (5 === members.size && meet.games_list.find('cs:go')) {
-                    meet.users_list.forEach((e) => {
-                        giveAdvanced(newState.client, 'Пойти фулл стаком в кс', e)
-                    })
-                }
+                // if (5 === members.size && meet.games_list.find('cs:go')) {
+                //     meet.users_list.forEach((e) => {
+                //         giveAdvanced(newState.client, 'Пойти фулл стаком в кс', e)
+                //     })
+                // }
                 
             } else {
                 newUserChannel.send(`<@${newState.member.user.id}> присоеденился к собранию!\nДо начала собрания осталось: \`${members.size}/${meet.users_list.length + 1}\` участников`)
