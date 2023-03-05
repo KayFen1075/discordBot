@@ -16,6 +16,12 @@ module.exports = {
         
         const user = interaction.options.get('user')
         if (!user) {
+
+            if (!fs.existsSync(`./src/dataBase/users/${interaction.user.id}.json`)) {
+                await interaction.reply({content: 'Ты не участник **ХАЖАБЫ** что бы использовать эту команду. Пройти регистрацию что бы использовать **все** команды <#1061827016518815845>', ephemeral: true})
+                return
+            }
+
             const profileJSON = JSON.parse(fs.readFileSync(`./src/dataBase/users/${interaction.user.id}.json`))
 
             let options_join = [{

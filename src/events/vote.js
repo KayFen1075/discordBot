@@ -8,6 +8,10 @@ module.exports = {
 
     async execute(interaction) {
         if (interaction.isButton()) {
+
+            if (!fs.existsSync(`./src/dataBase/users/${interaction.user.id}.json`)) {
+                return
+            }
             
             // create arr from customId
             const arr = interaction.customId.split('‘');

@@ -8,10 +8,11 @@ module.exports = {
     name: Events.InteractionCreate,
 
     async execute (interaction) {
-        if (!fs.existsSync(`./src/dataBase/users/${interaction.user.id}.json`)) {
-            await interaction.reply({content: 'Ты не участник **ХАЖАБЫ** что бы использовать эту команду. Пройти регистрацию что бы использовать **все** команды <#1061827016518815845>', ephemeral: true})
-            return
-        }
+        
+    if (!fs.existsSync(`./src/dataBase/users/${interaction.user.id}.json`)) {
+        // await interaction.reply({content: 'Ты не участник **ХАЖАБЫ** что бы использовать эту команду. Пройти регистрацию что бы использовать **все** команды <#1061827016518815845>', ephemeral: true})
+        return
+    }
         if (interaction.customId === 'say_join') {
             if (fs.existsSync(`./src/sounds/users_join/${interaction.user.id}/${interaction.values}`) && interaction.member.voice.channel) {
                 const channel = interaction.member.voice.channel

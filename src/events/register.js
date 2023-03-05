@@ -3,6 +3,8 @@ const { execute } = require('./ready');
 const fs = require('fs');
 const { ButtonBuilder } = require('@discordjs/builders');
 const { fileLog } = require('../functions/logs');
+const { acceptReuqest, declineRequest } = require('../functions/requserts');
+
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -56,7 +58,16 @@ module.exports = {
                     discription: interaction.fields.fields.get('discription').value,
                     games: games,
                     android_games: []
-                }
+                },
+                leveling: {
+                    level: 1,
+                    xp: 0,
+                    xpToNextLevel: 100,
+                    boost: 0,
+                    boostTime: 0
+                },
+                state: [0]
+                    
             });
 
             interaction.user.username = interaction.fields.fields.get('name').value
@@ -94,63 +105,30 @@ module.exports = {
             fileLog(`[QUERST] ${interaction.user.username}(${interaction.user.id}) подал заявку в хажабу!`)
             
         } else if (await interaction.customId === 'acceptRequist') {
+
+            // Accept requist
+
             if (await interaction.user.id !== '701572980332953631') {
                 await interaction.reply({content: `Вы не создатель! ||падла не трож||`, ephemeral: true});
                 return
             };
-            let userIdd = interaction.message.content.split(':');
-            userIdd = userIdd[1].replace(`||`,``);
-
-            const role = interaction.guild.roles.cache.find(role => role.name === "Член хажабы")
-            const requist = fs.readFileSync(`./src/dataBase/requests/${userIdd}.json`)
             
+            const userIdd = await interaction.message.content.split('||')[1].split(':')[1].split('>')[0]
 
-            (await interaction.guild.members.fetch(userIdd)).roles.add(role)
+            acceptReuqest(interaction, userIdd)
 
-            await interaction.reply({content: `<@${userIdd}> Заявка принята!\n*У тебя больше нету заявок, если ты выйдешь или тебя выгонят, вернуться ты не сможешь*`});
-
-            interaction.message.edit({content: `Новая заявка!(Принято)`, embeds: [new EmbedBuilder()
-                .setTitle(`Заявка от ${requist.userName}`)
-                .setDescription(`
-                Заявка была принята, ты норм чел
-                \`\`\`js\n0 Имя:    ${requist.userName}\n1 О себе: ${requist.data.discription}\n2 Др:     ${requist.data.happyDate}\n3 Игры которые может играть:
-                \n${requist.data.games}\`\`\`
-                `)
-                .setColor(Colors.Green)    
-            ], components: [new ActionRowBuilder().addComponents([new ButtonBuilder()
-                    .setLabel(`🐸 Принять`).setCustomId(`acceptRequist`).setStyle('3'),
-                        new ButtonBuilder()
-                    .setLabel(`🤬 Отклонить`).setCustomId(`cancelRequist`).setStyle('4')
-                ])]
-            })
-
-            fs.writeFileSync(`./src/dataBase/users/${userIdd}.json`, fs.readFileSync(`./src/dataBase/requests/${userIdd}.json`));
         } else if (await interaction.customId === 'cancelRequist') {
+            
+            // Accept requist
+
             if (await interaction.user.id !== '701572980332953631') {
                 await interaction.reply({content: `Вы не создатель! ||падла не трож||`, ephemeral: true});
                 return
             };
-            let userIdd = interaction.message.content.split(':');
-            userIdd = userIdd[1].replace(`||`,``);
-            const requist = JSON.parse(fs.readFileSync(`./src/dataBase/requests/${userIdd}.json`))
-            console.dir(requist)
+            
+            const userIdd = await interaction.message.content.split('||')[1].split(':')[1].split('>')[0]
 
-            await interaction.reply({content: `<@${userIdd}> Заявка отклонена!\n*У тебя больше нету заявок*`});
-
-            interaction.message.edit({content: `Новая заявка!(Отклонено)`, embeds: [new EmbedBuilder()
-                .setTitle(`Заявка от ${requist.userName}`)
-                .setDescription(`
-                Заявка была отклонена, возможно вы еблан
-                \`\`\`js\n0 Имя:    ${requist.userName}\n1 О себе: ${requist.data.discription}\n2 Др:     ${requist.data.happyDate}\n3 Игры которые может играть:
-                \n${requist.data.games}\`\`\`
-                `)
-                .setColor(Colors.Red)    
-            ], components: [new ActionRowBuilder().addComponents([new ButtonBuilder()
-                    .setLabel(`🐸 Принять`).setCustomId(`acceptRequist`).setStyle('3'),
-                        new ButtonBuilder()
-                    .setLabel(`🤬 Отклонить`).setCustomId(`cancelRequist`).setStyle('4')
-                ])]
-            })
+            declineRequest(interaction, userIdd)
         }
     }
 }
