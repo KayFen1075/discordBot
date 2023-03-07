@@ -46,7 +46,21 @@ module.exports = {
                 .setDescription('Пользователь которого надо добавить')
                 .setRequired(true)
             )
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('info')
+            .setDescription('Посмотреть список участников собрания')
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('change')
+            .setDescription('Изменить тему собрания')
+            .addStringOption(option => option
+                .setName('subject')
+                .setDescription('Выбрать свою тему собрания, можно через ","')
+                .setRequired(true)
+            )
         ),
+
     async execute(interaction) {
         const meetChannel = await interaction.guild.channels.cache.get('1074715039212253346')
 
@@ -62,7 +76,6 @@ module.exports = {
                 
                     let bot = JSON.parse(fs.readFileSync(`./src/dataBase/bot.json`))
                         bot.state[bot.state.length - 1] = bot.state[bot.state.length - 1] + timeMeet
-                        console.log(bot.state[bot.state.length - 1]);
                         fs.writeFileSync(`./src/dataBase/bot.json`, JSON.stringify(bot))
                     
                         meetChannel.send(`<@${interaction.user.id}> закрыл собрание, еслии быть точнее то этот ебан вышел из своего же собрания`)
@@ -113,7 +126,6 @@ module.exports = {
         else if (interaction.options._subcommand === 'add') {
             if (fs.existsSync(`./src/dataBase/meets/${interaction.user.id}.json`)) {
                 let meet = JSON.parse(fs.readFileSync(`./src/dataBase/meets/${interaction.user.id}.json`))
-                console.log(meet.users_list.filter(x => x !== interaction.options.get('user').value));
                 if (!meet.users_list.includes(interaction.options.get('user').value)) {
                     const voiceChannel = interaction.guild.channels.cache.get(meet.channel)
                 // const user = await interaction.guild.members.cache.get(interaction.options.get('user').value)
@@ -153,7 +165,6 @@ module.exports = {
                 
                 let bot = JSON.parse(fs.readFileSync(`./src/dataBase/bot.json`))
                     bot.state[bot.state.length - 1] = bot.state[bot.state.length - 1] + timeMeet
-                    console.log(bot.state[bot.state.length - 1]);
                     fs.writeFileSync(`./src/dataBase/bot.json`, JSON.stringify(bot))
 
                 meetChannel.send(`<@${interaction.user.id}> закрыл собрание, оно длилось \`${Math.round(timeMeet / 60000 / 60)}ч, ${Math.round(timeMeet / 60000 % 60)}м\``)
@@ -166,5 +177,43 @@ module.exports = {
                 interaction.reply({content: `Вы не проводите собрание`, ephemeral: true})
             }
         }
+
+        // info meet
+        else if (interaction.options._subcommand === 'info') {
+            if (fs.existsSync(`./src/dataBase/meets/${interaction.user.id}.json`)) {
+                let meet = JSON.parse(fs.readFileSync(`./src/dataBase/meets/${interaction.user.id}.json`))
+                const timeMeet = Date.now() - meet.time_start
+                const embed = new EmbedBuilder()
+                    .setTitle(`🟩 Информация о собрании`)
+                    .setDescription(`**Тема/темы:** ${meet.games_list.map(x => `\`${x}\``).join(', ')}\n**Время проведения:** \`${Math.round(timeMeet / 60000 / 60)}ч, ${Math.round(timeMeet / 60000 % 60)}м\`\n**Участники:** ${meet.users_list.map(x => `<@${x}>`).join(', ')}`)
+                    .setColor(Colors.Green)
+                interaction.reply({embeds: [embed], ephemeral: true})
+            } else {
+                interaction.reply({content: `Вы не проводите собрание`, ephemeral: true})
+            }
+        }
+
+        // change subject meet
+        else if (interaction.options._subcommand === 'change') {
+            if (fs.existsSync(`./src/dataBase/meets/${interaction.user.id}.json`)) {
+                let meet = JSON.parse(fs.readFileSync(`./src/dataBase/meets/${interaction.user.id}.json`))
+                const userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${interaction.user.id}.json`))
+                
+                const voiceChannel = interaction.guild.channels.cache.get(meet.channel)
+                const subject = interaction.options.get('subject').value.split(',')
+
+                voiceChannel.setName(`${userData.userName}: ${subject.join(', ')} id♂${interaction.user.id}`)
+
+                meet.games_list = subject
+
+                fs.writeFileSync(`./src/dataBase/meets/${interaction.user.id}.json`, JSON.stringify(meet))
+
+                interaction.reply({content: `Вы изменили тему собрания на: ${interaction.options.get('subject').value}`, ephemeral: true})
+                fileLog(`[MEET] ${interaction.user.tag} изменил тему собрания на: ${interaction.options.get('subject').value}`)
+            } else {
+                interaction.reply({content: `Вы не проводите собрание`, ephemeral: true})
+            }
+        }
+        
     }
 }

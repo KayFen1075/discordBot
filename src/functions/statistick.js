@@ -133,30 +133,31 @@ async function generateTable(count, labels, mounth, week) {
 
     if (mounth) {
         // bot state
-        for (let i = 0; bot.state.length <= count * 30; i++) {
-            bot.state.unshift(0)
-        }
-        const botArr = bot.state.splice(-(count * 30)).map(e => { return e / 60000 / 60 })
-        
-        // sum last 30 days
-        let timeInMounth = []
-        for (let i = 0; i < count; i++) {
-            let sum = 0
-            for (let j = 0; j < 30; j++) {
-                sum += botArr[i * 30 + j]
-            }
-            timeInMounth.push(sum)
-        }
-        
-
-
-        botUsers.push({
-            type: "bar",
-            label: "Общее время игры",
-            borderColor: "rgba(255, 99,132)",
-            backgroundColor: "rgb(255, 192, 203)",
-            data: timeInMounth
-        })
+        // const now = new Date()
+        // let botArr = bot.state.splice(-(count * 30)).map(e => { return e / 60000 / 60 })
+// 
+        // const daysInMounth = now.getDate()
+// 
+// 
+        // const allDaysInMounths = (count - 1) * 30 + daysInMounth
+        // for (let i = 0; botArr.length <= allDaysInMounths; i++) {
+            // botArr.unshift(0)
+        // }
+// 
+        // const thisMounth = botArr.splice(-daysInMounth)
+        // const lastMounths = botArr.splice(-(count - 1) * 30)
+        // let timeInMounth = []
+// 
+// 
+// 
+// 
+        // botUsers.push({
+            // type: "bar",
+            // label: "Общее время игры",
+            // borderColor: "rgba(255, 99,132)",
+            // backgroundColor: "rgb(255, 192, 203)",
+            // data: timeInMounth
+        // })
     
     } else if (week) {
         // bot state

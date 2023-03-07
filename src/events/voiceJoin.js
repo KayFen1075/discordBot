@@ -36,8 +36,6 @@ module.exports = {
                     console.log(user.userName +' '+ user.state[user.state.length - 1]);
                     fs.writeFileSync(`./src/dataBase/users/${newState.member.user.id}.json`, JSON.stringify(user))
 
-                    // give advanced if user is in voice channel for 10 hour or 50 hour or 125 hour
-
                     let user_time = 0
                     user.state.forEach((e) => {
                         user_time += e
@@ -74,8 +72,23 @@ module.exports = {
             const meet = JSON.parse(fs.readFileSync(`./src/dataBase/meets/${creatorId}.json`))
             const members = await newUserChannel.members.filter(member => !member.user.bot);
 
-            console.log(members);
+            
+            if (5 >= members.size && meet.games_list.includes('cs:go')) {
+                members.forEach((e) => {
+                    giveAdvanced(newState.client, 'Пойти фулл стаком в кс', e.id)
+                })
+            }
+            if (4 >= members.size && meet.games_list.includes('fortnite')) {
+                members.forEach((e) => {
+                    giveAdvanced(newState.client, 'Пойти фулл стаком в фортнайт', e.id)
+                })
+            }
 
+            const users = fs.readdirSync('./src/dataBase/users')
+            if (members.size === users.length) {
+                giveAdvanced(newState.client, 'Вся семья в сборе', creatorId)
+            }
+            
             if (meet.users_list.length + 1 <= members.size) {
                 let ping = ''
                 members.forEach((e) => {
@@ -86,16 +99,11 @@ module.exports = {
                 } else {
                     newUserChannel.send(`${ping} все в сборе, начинаем голосование на выбор во что поиграть! Варианты которые выбрал <@${creatorId}>: \`\`\`js\n${meet.games_list}\`\`\`Выберите один вариант в меню`)
                 }
-                // if (5 === members.size && meet.games_list.find('cs:go')) {
-                //     meet.users_list.forEach((e) => {
-                //         giveAdvanced(newState.client, 'Пойти фулл стаком в кс', e)
-                //     })
-                // }
+                
                 
             } else {
                 newUserChannel.send(`<@${newState.member.user.id}> присоеденился к собранию!\nДо начала собрания осталось: \`${members.size}/${meet.users_list.length + 1}\` участников`)
             }
-            console.log(creatorId);
         } else if (fs.existsSync(`./src/dataBase/users/${newState.member.user.id}.json`) && !newState.member.user.bot && newUserChannel === null && oldUserChannel.id !== '1060756194123317329') {
             setTimeout(async () => {
                 const creatorId = await oldUserChannel.name.split('♂')[1]

@@ -2,7 +2,7 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 const path = require('node:path');
 dotenv.config();
-const { Events, Client, ActionRowBuilder,ButtonBuilder, GatewayIntentBits, EmbedBuilder, PermissionsBitField, Permissions, MessageManager, Embed, Collection, Colors, Message } = require('discord.js');
+const { Events, Client, ActionRowBuilder, ButtonBuilder, GatewayIntentBits, EmbedBuilder, PermissionsBitField, Permissions, MessageManager, Embed, Collection, Colors, Message } = require('discord.js');
 const { VoiceConnectionStatus, AudioPlayerStatus } = require('@discordjs/voice');
 
 const { token } = require('./config.json');
@@ -10,7 +10,7 @@ const { channel } = require('diagnostics_channel');
 const { request } = require('http');
 const { time, Console } = require('console');
 const client = new Client({
-    intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates]
+	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates]
 });
 
 client.commands = new Collection();
@@ -19,7 +19,7 @@ client.commands = new Collection();
 // 	interaction.client. /
 // })
 
-// client.on('ready', (Client) => {
+// client.on('ready', (Client) => {/
 // 	console.log(client.application. /)
 // })
 

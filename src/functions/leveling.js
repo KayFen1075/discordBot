@@ -52,9 +52,13 @@ async function levelUp(client, user, remainder_xp, message, channelId) {
         });
 
         fileLog(`[LEVELING]`, `Пользователь <@${userData.userName}> повысил свой уровень до ${userData.leveling.level} уровня! через сообщение`)
-    } else {
+    } else if (channelId) {
         // send message
         const channel = client.channels.cache.get(channelId);
+        channel.send(`Поздравляем <@${user}> с повышением уровня активности до **${userData.leveling.level}** уровня!`);
+        fileLog(`[LEVELING]`, `Пользователь <@${userData.userName}> повысил свой уровень до ${userData.leveling.level} уровня! через голосовой чат`)
+    } else {
+        const channel = client.channels.cache.get('1060755820003991672');
         channel.send(`Поздравляем <@${user}> с повышением уровня активности до **${userData.leveling.level}** уровня!`);
         fileLog(`[LEVELING]`, `Пользователь <@${userData.userName}> повысил свой уровень до ${userData.leveling.level} уровня! через голосовой чат`)
     }

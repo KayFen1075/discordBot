@@ -3,7 +3,8 @@ const fs = require('fs');
 const { execute } = require('./ready');
 const { fileLog } = require('../functions/logs')
 
-const { get_game_list, check_game_in_list } = require('../functions/listFunc.js')
+const { get_game_list, check_game_in_list } = require('../functions/listFunc.js');
+const { giveAdvanced } = require('../functions/giveAdvanced');
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -134,17 +135,16 @@ module.exports = {
                     userList.push(`<@${user.user.id}> `)
                     await perms.push({
                         id: element,
-                        allow: [PermissionsBitField.Flags.ViewChannel],
+                        allow: [PermissionsBitField.Flags.Connect],
                     },
                         {
                             id: interaction.user.id,
-                            allow: [PermissionsBitField.Flags.ViewChannel],
+                            allow: [PermissionsBitField.Flags.Connect],
                         },
                         {
                             id: interaction.guild.id,
-                            deny: [PermissionsBitField.Flags.ViewChannel],
+                            deny: [PermissionsBitField.Flags.Connect],
                         })
-                    console.log(element);
                 });
 
                 meetChannel.send({
@@ -161,7 +161,6 @@ module.exports = {
 
                 userr.createEvent.setup2 = interaction.values;
                 const userData = JSON.stringify(userr);
-                console.log(voiceChannel.permissionOverwrites);
                 fs.writeFileSync(`./src/dataBase/users/${interactionUser}.json`, userData)
                 await interaction.message.edit({
                     content: `<@${interaction.user.id}> Начинаю массовую спам атаку`,
@@ -182,6 +181,9 @@ module.exports = {
                     channel: voiceChannel.id,
                     time_start: Date.now()
                 }; 
+
+                giveAdvanced(interaction.client, "Hello world", interaction.user.id)
+
                 setTimeout(()=>{
                     interaction.message.delete()    
                 }, 5000)
@@ -206,7 +208,7 @@ module.exports = {
 Время начала: ${new Date(meet.time_start).toLocaleString()}`)
                 fs.writeFileSync(`./src/dataBase/meets/${interaction.user.id}.json`, JSON.stringify(meet))
             }
-        } else if (interaction.options.get('subject')) {
+        } else if (interaction.subcommand === 'change' && interaction.options.get('subject')) {
             const value = (await interaction.options.get('subject')).value
 
             const users_files = fs.readdirSync('./src/dataBase/users')

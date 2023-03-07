@@ -49,7 +49,32 @@ function checkLeveling(user) {
     fs.writeFileSync(`./src/dataBase/users/${user}.json`, JSON.stringify(userData));
 }
 
+function checkActive(client) {
+    // const users = fs.readdirSync('./src/dataBase/users/')
+// 
+    // users.forEach(user => {
+        // let userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}`));
+        // const lastDays = userData.state.splice(-7);
+        // console.log(userData);
+        // console.log(lastDays);
+// 
+        // let test = [1, 2, 3]
+        // test.splice(0, -2)
+        // console.log(test)
+// 
+        // if (lastDays && lastDays.length > 0) {
+            // if (Math.max(...lastDays) == 0) {
+                // const channel = client.channels.cache.get('1062752082408513676')
+                // channel.send(`<@${user}> не активен уже 7 дней. Задумайтесь зачем он вам надо 😶`)
+                // userData.state[-1] = 1
+                // fs.writeFileSync(`./src/dataBase/users/${user}`, JSON.stringify(userData));
+            // }
+        // }
+    // })
+}
+
 module.exports = {
     checkStatistics,
-    checkLeveling
+    checkLeveling,
+    checkActive,
 }

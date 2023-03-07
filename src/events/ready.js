@@ -13,6 +13,8 @@ const { fileLog } = require('../functions/logs.js');
 const { endVote } = require('../functions/endVote');
 const { checkBoostTime, addBoost } = require('../functions/leveling.js');
 const { updateStatick } = require('../functions/statistick.js');
+const { checkActive } = require('../functions/cheking.js');
+const { updateQuests } = require('../functions/updateQuests.js');
 
 
 module.exports = {
@@ -141,8 +143,11 @@ module.exports = {
         }
         await updateList()
 
+        updateQuests(client)
+        checkActive(client)
         updateStatick(client)
         setInterval(() => {
+            checkActive(client)
             cheakVotes()
             updateStatick(client)
             checkBoostTime()

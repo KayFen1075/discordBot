@@ -94,6 +94,10 @@ module.exports = {
     .addSubcommand(subcommand => subcommand
         .setName('list')
         .setDescription('Список всех голосований от всех пользователей')
+    )
+    .addSubcommand(subcommand => subcommand
+        .setName('stauts')
+        .setDescription('Посмотреть статус голосования')
     ),
 
     async execute(interaction) {
@@ -124,19 +128,13 @@ module.exports = {
         let components = []
         let anonymous = false
 
-        if (interaction.options.get('anonymous') && interaction.options.get('anonymous').value == true) {
-            anonymous = true
-        }
+        interaction.options.get('anonymous') ? interaction.options.get('anonymous').value ? anonymous = true : anonymous = false : anonymous = false
 
-        if (interaction.options.get('ping') && interaction.options.get('ping').value == true) {
-            ping = `@everyone голосование от <@${interaction.user.id}>!`
-        } else {
-            ping = `Новое голосование от <@${interaction.user.id}>!`
-        }
+        interaction.options.get('ping') ? interaction.options.get('ping').value ? ping = `@everyone голосование от <@${interaction.user.id}>!` : ping = `Новое голосование от <@${interaction.user.id}>!` : ping = `Новое голосование от <@${interaction.user.id}>!`
 
         if (votes.length > 5 || votes.length < 2) {
             interaction.reply({
-                content: 'Максимум может быть 5 вариантов',
+                content: 'Максимум может быть 5 вариантов голосования, минимум 2',
                 ephemeral: true
             })
             return
@@ -170,7 +168,7 @@ module.exports = {
         })
         console.log(messageVote);
         interaction.reply({
-            content: `Голосование создано! \n **Вся информация о голосовании:**\n **Название:** ${interaction.options.get('title').value}\n **Описание:** ${interaction.options.get('description').value}\n **Варианты:** ${votes.join(', ')}\n **Время:** ${interaction.options.get('time').value}\n **Цвет:** ${interaction.options.get('color').value}\n **Упоминание:** ${interaction.options.get('ping').value}\n **Сообщение:** ${messageVote.id}`,
+            content: `Голосование создано! Посмотреть информацию о голосовании можно через команду \`/vote status\``,
             ephemeral: true
         })
 
@@ -202,6 +200,51 @@ module.exports = {
         } else if (interaction.options.getSubcommand() == 'end') {
             endVote(interaction.user.id, interaction.client)
         } else if (interaction.options.getSubcommand() == 'list') {
+            const data = JSON.parse(fs.readFileSync('./src/dataBase/bot.json', 'utf8'))
+            let votes = []
+            data.votes.forEach(e => {
+                const messageLink = `https://discord.com/channels/${interaction.guild.id}/${e.channel}/${e.message}`
+                votes.push(`**${e.title}**\nСоздатель: <@${e.id}>\nОткрыть: [ссылка](${messageLink})\nВарианты: ${e.choices.join(', ')}\n\n`)  
+            })
+            interaction.reply({
+                content: `**Список голосований:**\n${votes.join('\n')}`,
+                ephemeral: true
+            })
+        } else if (interaction.options.getSubcommand() == 'stauts') {
+            let data = JSON.parse(fs.readFileSync('./src/dataBase/bot.json', 'utf8'))
+            let vote = data.votes.find(e => e.id == interaction.user.id)
+
+            if (!vote) { 
+                interaction.reply({
+                    content: 'У вас нет активных голосований',
+                    ephemeral: true
+                })
+            } else {
+                let choices = []
+                let voteUsers = []
+                vote.votes_users.forEach(e => {
+                    voteUsers.push(`<@${e.id}>`)
+                    choices.push(e.vote)
+                })
+
+                // get choices + users who voted
+                let choicesUsers = []
+                vote.choices.forEach(e => {
+                    let users = []
+                    vote.votes_users.forEach(e2 => {
+                        if (e2.vote == e) {
+                            users.push(`<@${e2.id}>`)
+                        }
+                    })
+                    choicesUsers.push(`${e} (${users.length}): ${users.join(', ')}`)
+                })
+
+                    
+                interaction.reply({
+                content: `**Название:** ${vote.title}\n**Описание:** ${vote.description}\n**Варианты:** ${vote.choices.join(', ')}\n**Время:** ${vote.time}\n**Цвет:** ${vote.color}\n**Упоминание:** ${vote.ping}\n**Сообщение:** ${vote.message}\n**Голоса:** \n${choicesUsers.join('\n')}`,
+                ephemeral: true
+            })
+        }
         }
     }
 }

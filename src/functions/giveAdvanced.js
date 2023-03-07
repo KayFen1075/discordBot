@@ -18,7 +18,7 @@ async function giveAdvanced(client, name, user) {
     data.advenced.forEach((e, i) => {
         if (e.name == name) {
             if (e.users.includes(user)) {
-                return
+                return console.log(`Пользователь ${user} уже имеет достижение ${name}`);
             } else {
                 const advenced = e;
                 const users = fs.readdirSync('./src/dataBase/users/').length;
@@ -40,6 +40,7 @@ async function giveAdvanced(client, name, user) {
                     content: `<@${user}> получил достижение **${name.toLowerCase()}**!\n\n `,
                     embeds: [embed]
                 });
+                return console.log(`Выдано достижение ${name} пользователю (${user})`);
             }
         }
     });
