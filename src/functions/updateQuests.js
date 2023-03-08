@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { EmbedBuilder, Colors } = require('discord.js');
+const { xpAdd } = require('./leveling');
 
 async function updateQuests(client) {
     const data = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'));
@@ -12,12 +13,10 @@ async function updateQuests(client) {
     }
     const now = new Date();
     const day = now.getDate();
-    console.log(now);
 
     // check if day changed
 
     const questsDay = new Date(data.questsDayTime)
-    console.log(questsDay);
     if (questsDay.getDate() != day) {
         data.questsDayTime = now;
         
@@ -68,7 +67,7 @@ async function updateQuests(client) {
                 user = user.replace('.json', '');
 
                 const random = Math.floor(Math.random() * quests.length);
-                console.log(quests[random]);
+
                 quests[random].users_have_quest.push({
                     id: user,
                     progress: 0,
@@ -225,6 +224,73 @@ async function updateMessageQuest(client) {
     }
 }
 
+async function progressQuestAdd(client, userId, questName, progress, message, voiceChannel) {
+    let data = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'));
+    let quest = data.quests.find(quest => quest.name === questName);
+
+    if (!quest) return;
+
+    let user = quest.users_have_quest.find(user => user.id === userId);
+
+    if (!user) return;
+
+    await fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(data));
+
+    user.progress += progress;
+    if (user.progress >= quest.need) {
+        console.log(`Квест ${quest.name} завершен пользователем ${userId}`);
+        endQuest(client, userId, questName, message, voiceChannel)
+    }
+    updateQuests(client);
+}
+
+async function endQuest(client, userId, questName, message, voiceChannel) {
+    let data = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'));
+    let quest = data.quests.find(quest => quest.name === questName);
+
+    if (!quest) return;
+
+    let userQuest = quest.users_have_quest.find(userQuest => userQuest.id === userId);
+
+    if (!userQuest) return;
+
+    quest.users_have_quest.splice(quest.users_have_quest.indexOf(userQuest), 1);
+    quest.users_completed_quest.push(userQuest);
+
+    fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(data));
+
+    let userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${userId}.json`));
+    let revand = quest.reward;
+
+    if (quest.type === 'daily') {
+        userData.stuck += 0.25;
+        revand = quest.reward * userData.stuck;
+        xpAdd(client, userId, revand, message, voiceChannel, true)
+    } else if (quest.type === 'week') {
+        userData.stuckWeek += 1
+        const revand = quest.reward * userData.stuckWeek;
+        xpAdd(client, userId, revand, message, voiceChannel, true)
+    } else if (quest.type === 'season') {
+        revand = quest.reward
+        xpAdd(client, userId, quest.revand, message, voiceChannel, true)
+    }
+
+    fs.writeFileSync(`./src/dataBase/users/${userId}.json`, JSON.stringify(userData));
+
+    if (message) {
+        message.react('🔥').then(() => {
+            message.react('🎯');
+        });
+    } else if (voiceChannel) {
+        voiceChannel.send({ content: `<@${userId}>, ты выполнил квест \`${quest.name}(${quest.type})\`!\nНаграда: \`${quest.reward}(${revand})xp\``});
+    } else {
+        const channel = await client.channels.cache.get('1060755820003991672');
+        channel.send({ content: `<@${userId}>, ты выполнил квест \`${quest.name}(${quest.type})\`!\nНаграда: \`${quest.reward}(${revand})xp\``});
+    }
+    updateQuests(client);
+}
+
 module.exports = {
     updateQuests,
+    progressQuestAdd,
 };

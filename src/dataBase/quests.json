@@ -4,13 +4,13 @@
         {
             "name": "за неделю",
             "type": "days",
-            "disabled": false,
+            "disabled": true,
             "count": 7
         },
         {
             "name": "за месяц",
             "type": "days",
-            "disabled": true,
+            "disabled": false,
             "count": 24
         },
         {
@@ -42,31 +42,11 @@
             "need": 1,
             "users_have_quest": [
                 {
-                    "id": "193705284944789504",
-                    "progress": 0
-                },
-                {
-                    "id": "493719204986486794",
-                    "progress": 0
-                },
-                {
-                    "id": "543103577837797386",
-                    "progress": 0
-                },
-                {
-                    "id": "640968019262177299",
-                    "progress": 0
-                },
-                {
                     "id": "661285904903700490",
                     "progress": 0
                 },
                 {
                     "id": "701572980332953631",
-                    "progress": 0
-                },
-                {
-                    "id": "892458246223310858",
                     "progress": 0
                 }
             ],
@@ -81,7 +61,15 @@
             "need": 500,
             "users_have_quest": [
                 {
-                    "id": "701572980332953631",
+                    "id": "493719204986486794",
+                    "progress": 0
+                },
+                {
+                    "id": "640968019262177299",
+                    "progress": 0
+                },
+                {
+                    "id": "661285904903700490",
                     "progress": 0
                 }
             ],
@@ -115,7 +103,16 @@
             "type": "Evryday",
             "progress": 0,
             "need": 1,
-            "users_have_quest": [],
+            "users_have_quest": [
+                {
+                    "id": "640968019262177299",
+                    "progress": 0
+                },
+                {
+                    "id": "892458246223310858",
+                    "progress": 0
+                }
+            ],
             "users_completed_quest": []
         },
         {
@@ -125,7 +122,12 @@
             "type": "Evryday",
             "progress": 0,
             "need": 1,
-            "users_have_quest": [],
+            "users_have_quest": [
+                {
+                    "id": "193705284944789504",
+                    "progress": 0
+                }
+            ],
             "users_completed_quest": []
         },
         {
@@ -134,9 +136,23 @@
             "reward": 60,
             "type": "Evryday",
             "progress": 0,
-            "need": 45,
-            "users_have_quest": [],
-            "users_completed_quest": []
+            "need": 1500,
+            "users_have_quest": [
+                {
+                    "id": "493719204986486794",
+                    "progress": 6
+                },
+                {
+                    "id": "543103577837797386",
+                    "progress": 0
+                }
+            ],
+            "users_completed_quest": [
+                {
+                    "id": "701572980332953631",
+                    "progress": 1501
+                }
+            ]
         },
         {
             "name": "🐸 Деловой",
@@ -144,7 +160,7 @@
             "reward": 100,
             "type": "Evryday",
             "progress": 0,
-            "need": 30,
+            "need": 1,
             "users_have_quest": [],
             "users_completed_quest": []
         },
@@ -157,9 +173,77 @@
             "need": 1,
             "users_have_quest": [],
             "users_completed_quest": []
+        },
+        {
+            "name": "📢 Голосок",
+            "description": "Запиши 5 приветствий",
+            "reward": 525,
+            "type": "Week",
+            "progress": 0,
+            "need": 5,
+            "users_have_quest": [],
+            "users_completed_quest": []
+        },
+        {
+            "name": "🔇 BB",
+            "description": "Запиши 5 прощаний",
+            "reward": 525,
+            "type": "Week",
+            "progress": 0,
+            "need": 5,
+            "users_have_quest": [
+                {
+                    "id": "543103577837797386",
+                    "progress": 0
+                },
+                {
+                    "id": "701572980332953631",
+                    "progress": 0
+                }
+            ],
+            "users_completed_quest": []
+        },
+        {
+            "name": "👋🏿 Лютое трио",
+            "description": "Проведи собрание на 3 человека(60м)",
+            "reward": 500,
+            "type": "Week",
+            "progress": 0,
+            "need": 60,
+            "users_have_quest": [
+                {
+                    "id": "193705284944789504",
+                    "progress": 0
+                },
+                {
+                    "id": "892458246223310858",
+                    "progress": 0
+                }
+            ],
+            "users_completed_quest": []
+        },
+        {
+            "name": "🎮 Игроман",
+            "description": "Добавить в список 1 игру",
+            "reward": 75,
+            "type": "Evryday",
+            "progress": 0,
+            "need": 1,
+            "users_have_quest": [],
+            "users_completed_quest": []
+        },
+        {
+            "name": "🖥️ ГейМер",
+            "description": "Добавить в список 7 игр",
+            "reward": 625,
+            "type": "Week",
+            "progress": 0,
+            "need": 7,
+            "users_have_quest": [],
+            "users_completed_quest": []
         }
     ],
-    "questsDayTime": "2023-03-07T01:07:09.955Z",
+    "questsDayTime": "2023-03-07T22:47:50.522Z",
     "questsWeekTime": "2023-03-04T01:05:09.066Z",
     "advenced": [
         {
@@ -189,7 +273,8 @@
             "users": [
                 "193705284944789504",
                 "661285904903700490",
-                "701572980332953631"
+                "701572980332953631",
+                "493719204986486794"
             ],
             "difficulty": "Легко;9807270",
             "xp": 100
@@ -239,7 +324,10 @@
             "emoji": "🦙",
             "name": "Пойти фулл стаком в фортнайт",
             "description": "Создать собрание с темой Fortnite и набрать 4 участников (участникам тоже выдаёться)",
-            "users": [],
+            "users": [
+                "701572980332953631",
+                "193705284944789504"
+            ],
             "difficulty": "Средне;5763719",
             "xp": 350
         },
@@ -260,7 +348,34 @@
             "xp": 400
         }
     ],
-    "votes": [],
+    "votes": [
+        {
+            "id": "701572980332953631",
+            "title": "Увеличивать опыт достижений",
+            "description": "да нет",
+            "choices": [
+                "да",
+                "нет"
+            ],
+            "color": 5763719,
+            "ping": "Новое голосование от <@701572980332953631>!",
+            "startVote": 1678295764962,
+            "channel": "1062752082408513676",
+            "message": "1083075322116853760",
+            "anonymous": false,
+            "votes_users": [
+                {
+                    "id": "701572980332953631",
+                    "vote": "да"
+                },
+                {
+                    "id": "493719204986486794",
+                    "vote": "да"
+                }
+            ],
+            "time": "1d"
+        }
+    ],
     "state": [
         1836629,
         15680939,
@@ -282,9 +397,10 @@
         0,
         20719171,
         13727183,
+        21352636,
         0
     ],
-    "happyCheckDate": "2023-03-06T22:04:15.448Z",
+    "happyCheckDate": "2023-03-07T22:47:50.546Z",
     "recomend": " Рекомендуемые игры:\n\n1 Игры, в которые можно играть прямо сейчас:\nCS:GO, Fortnite, Roblox, Among Us, Sea of Thieves, Jackbox, Portal 2, Payday 2, VSE, Terraria, Minecraft Dungeons.\n\n2 Игры, которые могут обеспечить долгосрочное развлечение:\nForza Horizon 5, Dota 2, Hearts of Iron 4, Starbound, RDO, GTA 5, DST.\n\n3 Игры, которых нет в списке:\nOverwatch, League of Legends, World of Warcraft, Divinity: Original Sin 2, Stardew Valley, Subnautica, The Witcher 3, Rocket League, Don't Starve, Rimworld.",
     "message_stats": {
         "channelId": "1061911188528693358",
@@ -496,5 +612,6 @@
         "reference": null,
         "interaction": null,
         "cleanContent": ""
-    }
+    },
+    "questsMessageId": "1082651072360874085"
 }
