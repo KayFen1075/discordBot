@@ -43,9 +43,11 @@ module.exports = {
                     
                     if (user_time >= 36000000) {
                         giveAdvanced(newState.client, 'Проверка пройдена', newState.member.user.id)
-                    } else if (user_time >= 180000000) {
+                    } 
+                    if (user_time >= 180000000) {
                         giveAdvanced(newState.client, 'Полноценный участник ХАЖАБЫ', newState.member.user.id)
-                    } else if (user_time >= 450000000) {
+                    } 
+                    if (user_time >= 450000000) {
                         giveAdvanced(newState.client, 'Истенный олд', newState.member.user.id)
                     }
 
@@ -73,12 +75,12 @@ module.exports = {
             const members = await newUserChannel.members.filter(member => !member.user.bot);
 
             
-            if (5 >= members.size && meet.games_list.includes('cs:go')) {
+            if (5 <= members.size && meet.games_list.includes('cs:go')) {
                 members.forEach((e) => {
                     giveAdvanced(newState.client, 'Пойти фулл стаком в кс', e.id)
                 })
             }
-            if (4 >= members.size && meet.games_list.includes('fortnite')) {
+            if (4 <= members.size && meet.games_list.includes('fortnite')) {
                 members.forEach((e) => {
                     giveAdvanced(newState.client, 'Пойти фулл стаком в фортнайт', e.id)
                 })

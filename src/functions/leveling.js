@@ -71,13 +71,14 @@ async function addBoost(client, user, boost, time, reason) {
     checkLeveling(user)
 
     const timeStat = {
+        days: Math.floor(time / 60 / 60 / 1000 / 24),
         hours: Math.floor(time / 60 / 60 / 1000 % 60),
-        minutes: Math.floor(time / 60 / 1000),
+        minutes: Math.floor(time / 60 / 1000 % 60),
     }
 
     // say reason ib channel
     const channel = client.channels.cache.get('1062752082408513676');
-    channel.send(`Пользователь <@${user}> получил буст на **${boost}x** на \`${timeStat.hours}ч, ${timeStat.minutes}м\` по причине: **${reason}**`);
+    channel.send(`Пользователь <@${user}> получил буст на **${boost}x** на \`${timeStat.days}д, ${timeStat.hours}ч, ${timeStat.minutes}м\` по причине: **${reason}**`);
 
     time += Date.now();
 

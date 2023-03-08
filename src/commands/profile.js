@@ -143,13 +143,18 @@ module.exports = {
                 }
             }
 
-            
+            let levelInfo = ''
+            // check if user have leveling
+            if (profileJSON.leveling) {
+                // info about level and progress bar 
+                levelInfo = `Уровень: **${profileJSON.leveling.level}**\nОпыт: \`${profileJSON.leveling.xp}/${profileJSON.leveling.xpToNextLevel}\`\n` + `${'█'.repeat(Math.round(profileJSON.leveling.xp / profileJSON.leveling.xpToNextLevel * 20))}${'░'.repeat(20 - Math.round(profileJSON.leveling.xp / profileJSON.leveling.xpToNextLevel * 20))}`
+            } 
 
             interaction.reply({
                 content: `Профиль <@${user.value}>`, embeds: [
                     new EmbedBuilder()
                         .setTitle(`Профиль ${profileJSON.userName} 👨🏿‍❤️‍👨🏿`)
-                        .setDescription(`**О себе:** \`\`\`${profileJSON.data.discription}\`\`\`\n**День рождения:** ${profileJSON.data.happyDate}\n**Игры в списке(ПК):** \`\`\`${profileJSON.data.games}.\`\`\`\n**Игры в списке(Андроид):** \`\`\`${profileJSON.data.android_games}.\`\`\``)
+                        .setDescription(`**О себе:** \`\`\`${profileJSON.data.discription}\`\`\`\n**День рождения:** ${profileJSON.data.happyDate}\n**Игры в списке(ПК):** \`\`\`${profileJSON.data.games}.\`\`\`\n**Игры в списке(Андроид):** \`\`\`${profileJSON.data.android_games}.\`\`\`\n${levelInfo}`)
                         .setColor(Colors.Green)
                     ,
                     new EmbedBuilder()

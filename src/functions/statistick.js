@@ -198,39 +198,45 @@ async function generateTable(count, labels, mounth, week) {
         })
     }
 
-    const line_chart = await ChartJSImage().chart({
-        type: "bar",
-
-        options: {
-            plugins: {
-                title: {
-                    display: true,
-                    text: 'KayFen'
+    let line_chart;
+    try {
+        line_chart = await ChartJSImage().chart({
+            type: "bar",
+    
+            options: {
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'KayFen'
+                    },
                 },
-            },
-            responsive: true,
-            scales: {
-                x: {
-                    stacked: true,
-                },
-                y: {
-                    stacked: true
+                responsive: true,
+                scales: {
+                    x: {
+                        stacked: true,
+                    },
+                    y: {
+                        stacked: true
+                    }
                 }
-            }
-        },
-        data: {
-
-            labels: labels,
-            datasets: botUsers
-        },
-
-
-    }) // Line chart
-        .backgroundColor('rgba(255,255,255,1)')
-        .width(500) // 500px
-        .height(300); // 300px
-    const buffer = line_chart.toBuffer('image/png');
-    return buffer
+            },
+            data: {
+    
+                labels: labels,
+                datasets: botUsers
+            },
+        }) // Line chart
+            .backgroundColor('rgba(255,255,255,1)')
+            .width(500) // 500px
+            .height(300); // 300px
+        const buffer = line_chart.toBuffer('image/png');
+        return buffer
+    } catch (error) {
+        console.log(error)
+        const buffer = fs.readFileSync('./src/error.png')
+        return buffer
+    }
+    
 }
 
 function getLastNDays(n, mounth, week) {

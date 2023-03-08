@@ -50,24 +50,29 @@ module.exports = {
         const subcommand = interaction.options.getSubcommand();
 
         if (subcommand === 'boost') {
-            const boost = interaction.options.get('boost').value;
-            const user = interaction.options.get('user').value;
-            const time = Number(interaction.options.get('time').value);
-            const reason = interaction.options.get('reason').value;
+            const boost = await interaction.options.get('boost').value;
+            const user = await interaction.options.get('user').value;
+            const time = await Number(interaction.options.get('time').value);
+            const reason = await interaction.options.get('reason').value;
+
+            console.log(user);
 
             checkLeveling(user)
 
             let userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}.json`));
 
-            addBoost(interaction.client, interaction.user.id, boost, time, reason)
+            addBoost(interaction.client, user, boost, time, reason)
 
-            interaction.reply(`Буст опыта на ${boost}x пользователю ${userData.name} на ${time / 3600000} часов. Причина: ${reason}`)
+            interaction.reply({content: `Буст опыта на **${boost}x** пользователю **${userData.userName}** на **${time / 3600000}** часов. Причина: ${reason}`, ephemeral: true})
         } 
 
         if (subcommand === 'reset') {
             const user = interaction.options.get('user').value;
 
             checkLeveling(user)
+
+            // only for admins
+            interaction.member.PermissionFlagsBits.Administrator === false ? interaction.reply({ content: 'Ты не админ, иди нахуй', ephemeral: true }) : null;
 
             let userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}.json`));
 
@@ -80,7 +85,7 @@ module.exports = {
 
             fs.writeFileSync(`./src/dataBase/users/${user}.json`, JSON.stringify(userData));
 
-            interaction.reply({ content: `Уровень пользователя ${userData.userName} сброшен!`, ephemeral: true})
+            interaction.reply({ content: `Уровень пользователя ${userData.userName} сброшен! Иди нахуй лох`})
         }
     }
 }
