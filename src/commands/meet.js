@@ -59,6 +59,15 @@ module.exports = {
                 .setDescription('Выбрать свою тему собрания, можно через ","')
                 .setRequired(true)
             )
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('plan')
+            .setDescription('Запланировать собрание')
+            .addStringOption(option => option
+                .setName('subject')
+                .setDescription('Выбрать свою тему собрания, можно через ","')
+                .setRequired(false)
+            )
         ),
 
     async execute(interaction) {
@@ -145,7 +154,7 @@ module.exports = {
 
                 voiceChannel.send(`<@${interaction.options.get('user').value}> добавили в собрание`)
                 fileLog(`[MEET] ${interaction.user.tag} добавил ${interaction.options.get('user').value} в собрание`)
-                voiceChannel.permissionOverwrites.create(interaction.options.get('user').value, { ViewChannel: true })
+                voiceChannel.permissionOverwrites.create(interaction.options.get('user').value, PermissionsBitField.Flags.Connect)
                 } else {
                     interaction.reply({content: `<@${interaction.options.get('user').value}> уже есть в собрании`, ephemeral: true})
                 }

@@ -1,7 +1,8 @@
 const { Events } = require('discord.js');
 const fs = require('fs');
 const CircularJSON = require('circular-json');
-const { fileLog } = require('../functions/logs')
+const { fileLog } = require('../functions/logs');
+const { progressQuestAdd } = require('../functions/updateQuests');
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -64,11 +65,11 @@ module.exports = {
                     ephemeral: true
                 })
 
-
                 // add vote to file
                 vote.votes_users.push({id: user, vote: arr[1]})
                 fs.writeFileSync('./src/dataBase/bot.json', CircularJSON.stringify(data))
                 fileLog(`[VOTE] ${interaction.user.username} проголосовал за ${arr[1]} в голосовании ${vote.id}`)
+                progressQuestAdd(interaction.client, interaction.user.id, '🫱🏿‍🫲🏿 Голос', 1)
             }
         }
     }

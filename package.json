@@ -18,7 +18,7 @@
     "nhentai-api": "^3.4.3",
     "nhentai-js": "^4.0.0",
     "nodemon": "^2.0.20",
-    "openai": "^3.1.0",
+    "openai": "^3.2.1",
     "opusscript": "^0.0.8",
     "path": "^0.12.7",
     "say": "^0.16.0",

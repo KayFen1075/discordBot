@@ -2,7 +2,7 @@ const fs = require('fs');
 const dotenv = require('dotenv');
 const path = require('node:path');
 dotenv.config();
-const { Events, Client, ActionRowBuilder, ButtonBuilder, GatewayIntentBits, EmbedBuilder, PermissionsBitField, Permissions, MessageManager, Embed, Collection, Colors, Message } = require('discord.js');
+const { Events, Client, ActionRowBuilder,ButtonBuilder, GatewayIntentBits, EmbedBuilder, PermissionsBitField, Permissions, MessageManager, Embed, Collection, Colors, Message } = require('discord.js');
 const { VoiceConnectionStatus, AudioPlayerStatus } = require('@discordjs/voice');
 
 const { token } = require('./config.json');
@@ -16,7 +16,7 @@ const client = new Client({
 client.commands = new Collection();
 
 // client.on('interactionCreate', (interaction) => {
-// 	interaction.client. /
+	// interaction.options. /
 // })
 
 // client.on('ready', (Client) => {/
@@ -41,7 +41,8 @@ const eventsPath = path.join(__dirname, 'events');
 const eventFiles = fs.readdirSync(eventsPath).filter(file => file.endsWith('.js'));
 for (const file of eventFiles) {
 	const filePath = path.join(eventsPath, file);
-	const event = require(filePath);
+	const event = 
+	require(filePath);
 	if (event.once) {
 		client.once(event.name, (...args) => event.execute(...args));
 	} else {

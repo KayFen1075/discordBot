@@ -97,7 +97,6 @@ module.exports = {
 
         if (subcommand === 'create') {
 
-            const user = interaction.options.getUser('user');
             const name = interaction.options.getString('name');
             const description = interaction.options.getString('description');
             const reward = interaction.options.getNumber('reward');
@@ -129,8 +128,8 @@ module.exports = {
             data.quests.push(quest);
 
             fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(data, null, 2));
-
             interaction.reply(`Вы создали новый квест **${name}** вся информация: \nОписание: ${description} \nНаграда: ${reward} \nТип: ${type}`);
+
         } else if (subcommand === 'delete') {
 
             const name = interaction.options.getString('name');
@@ -307,7 +306,7 @@ module.exports = {
             }
 
             const quest = data.quests.find(quest => quest.name === name);
-            console.log(quest);
+            
             // check if user exists
             if (quest.users_have_quest.find(user => user.id === user)) {
                 interaction.reply('Пользователь уже имеет этот квест');

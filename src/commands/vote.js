@@ -5,6 +5,7 @@ const { EmbedBuilder } = require('@discordjs/builders')
 const CircularJSON = require('circular-json')
 const { fileLog } = require('../functions/logs')
 const { endVote } = require('../functions/endVote')
+const { progressQuestAdd } = require('../functions/updateQuests')
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -196,6 +197,7 @@ module.exports = {
    Цвет: ${color}
    Упоминание: ${ping}
    Сообщение: ${messageVote.id}`)
+        progressQuestAdd(interaction.client, interaction.user.id, '🤝 Выборы', 1)
         fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(data))
         } else if (interaction.options.getSubcommand() == 'end') {
             endVote(interaction.user.id, interaction.client)

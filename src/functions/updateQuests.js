@@ -22,6 +22,8 @@ async function updateQuests(client) {
         
         let quests = data.quests.filter(quest => quest.type == 'Evryday');
 
+        const channel = client.channels.cache.get('1062752082408513676');
+
         quests.forEach(quest => {
             quest.users_have_quest.forEach(user => {
                 let userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${user.id}.json`));
@@ -34,9 +36,24 @@ async function updateQuests(client) {
         const users = fs.readdirSync('./src/dataBase/users/');
         users.forEach(user => {
             user = user.replace('.json', '');
+            
+            let userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}.json`));
 
-            const random = Math.floor(Math.random() * quests.length);
-            quests[random]?.users_have_quest.push({
+            user_no_complted_quests = quests.filter(quest => !quest.users_completed_quest.find(id => id == user));
+            console.log(user_no_complted_quests.length);
+
+            if (user_no_complted_quests.length == 0) {
+                channel.send(`<@${user}> выполнил все ежедневные квесты, которые только были! Его стрик равен \`${userData.stuck}x\` 🔥`);
+                console.log('Пользователь выполнил все ежедневные квесты, удаляем его из всех квестов');
+                quests.forEach(quest => {
+                    // delete user from users_completed_quest
+                    quest.users_completed_quest = quest.users_completed_quest.filter(id => id != user);
+                    user_no_complted_quests = quests
+                });
+            }
+
+            const random = Math.floor(Math.random() * user_no_complted_quests.length);
+            user_no_complted_quests[random]?.users_have_quest.push({
                 id: user,
                 progress: 0,
             });
@@ -54,8 +71,7 @@ async function updateQuests(client) {
         fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(data));
         
         if (questsDay.getDate() % 7 === 0) {
-            const channel = client.channels.cache.get('1062752082408513676');
-            // channel.send(`Появились новые еженедельные квесты! <#1082480582912651325>`);
+            channel.send(`Появились новые еженедельные квесты! <#1082480582912651325>`);
 
             quests = data.quests.filter(quest => quest.type == 'Week');
 
@@ -85,6 +101,7 @@ async function updateQuests(client) {
 
             fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(data));
         }
+        updateMessageQuest(client);
     }
 }
 
@@ -241,7 +258,27 @@ async function progressQuestAdd(client, userId, questName, progress, message, vo
         console.log(`Квест ${quest.name} завершен пользователем ${userId}`);
         endQuest(client, userId, questName, message, voiceChannel)
     }
-    updateQuests(client);
+    updateMessageQuest(client);
+}
+
+async function progressQuestSet(client, userId, questName, progress, message, voiceChannel) {
+    let data = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'));
+    let quest = data.quests.find(quest => quest.name === questName);
+
+    if (!quest) return;
+
+    let user = quest.users_have_quest.find(user => user.id === userId);
+
+    if (!user) return;
+
+    await fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(data));
+
+    user.progress = progress;
+    if (user.progress >= quest.need) {
+        console.log(`Квест ${quest.name} завершен пользователем ${userId}`);
+        endQuest(client, userId, questName, message, voiceChannel)
+    }
+    updateMessageQuest(client);
 }
 
 async function endQuest(client, userId, questName, message, voiceChannel) {
@@ -255,22 +292,22 @@ async function endQuest(client, userId, questName, message, voiceChannel) {
     if (!userQuest) return;
 
     quest.users_have_quest.splice(quest.users_have_quest.indexOf(userQuest), 1);
-    quest.users_completed_quest.push(userQuest);
+    quest.users_completed_quest.push(userQuest.id);
 
     fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(data));
 
     let userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${userId}.json`));
     let revand = quest.reward;
 
-    if (quest.type === 'daily') {
+    if (quest.type === 'Evryday') {
         userData.stuck += 0.25;
         revand = quest.reward * userData.stuck;
         xpAdd(client, userId, revand, message, voiceChannel, true)
-    } else if (quest.type === 'week') {
+    } else if (quest.type === 'Week') {
         userData.stuckWeek += 1
-        const revand = quest.reward * userData.stuckWeek;
+        revand = quest.reward * userData.stuckWeek;
         xpAdd(client, userId, revand, message, voiceChannel, true)
-    } else if (quest.type === 'season') {
+    } else if (quest.type === 'Season') {
         revand = quest.reward
         xpAdd(client, userId, quest.revand, message, voiceChannel, true)
     }
@@ -287,10 +324,11 @@ async function endQuest(client, userId, questName, message, voiceChannel) {
         const channel = await client.channels.cache.get('1060755820003991672');
         channel.send({ content: `<@${userId}>, ты выполнил квест \`${quest.name}(${quest.type})\`!\nНаграда: \`${quest.reward}(${revand})xp\``});
     }
-    updateQuests(client);
+    updateMessageQuest(client);
 }
 
 module.exports = {
+    progressQuestSet,
     updateQuests,
     progressQuestAdd,
 };

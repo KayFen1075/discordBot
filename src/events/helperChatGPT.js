@@ -15,7 +15,7 @@ module.exports = {
     name: Events.ThreadCreate,
     
     async execute(thread) {
-    console.log("TESSSSS:", thread);
+    // console.log("TESSSSS:", thread);
     if (thread.parentId === '1062661275873726534') {
       const message = await thread.send('Спасибо за идею 🫱🏿‍🫲🏿');
       progressQuestAdd(thread.client, thread.ownerId, '💡 Идейщик', 1)
