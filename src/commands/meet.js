@@ -68,6 +68,19 @@ module.exports = {
                 .setDescription('Выбрать свою тему собрания, можно через ","')
                 .setRequired(false)
             )
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('start')
+            .setDescription('Начать собрание')
+        )
+        .addSubcommand(subcommand => subcommand
+            .setName('invite')
+            .setDescription('Пригласить участников в собрание')
+            .addMentionableOption(option => option
+                .setName('user')
+                .setDescription('Пользователь которого надо добавить')
+                .setRequired(true)
+            )
         ),
 
     async execute(interaction) {
@@ -224,5 +237,24 @@ module.exports = {
             }
         }
         
+        // invite user to meet
+        else if (interaction.options._subcommand === 'invite') {
+            if (!fs.existsSync(`./src/dataBase/planMeets/${interaction.user.id}.json`)) {
+                interaction.reply({content: `Вы не создали план собрания`, ephemeral: true})
+                return
+            }
+            let planMeet = JSON.parse(fs.readFileSync(`./src/dataBase/planMeets/${interaction.user.id}.json`))
+            const user = interaction.options.get('user').value
+            if (planMeet.users_invited.includes(user)) {
+                interaction.reply({content: `Вы уже пригласили этого пользователя`, ephemeral: true})
+                return
+            }
+            planMeet.users_invited.push(user)
+            fs.writeFileSync(`./src/dataBase/planMeets/${interaction.user.id}.json`, JSON.stringify(planMeet))
+            interaction.reply({content: `Вы пригласили <@${user}> в собрание`, ephemeral: true})
+
+            const message = await interaction.channel.messages.fetch(planMeet.message_id)
+            message.thread.send(`<@${user}> вы были приглашены это собрание, пожалуйста выбирите смогли ли вы принять участие в нем.`)
+        }
     }
 }

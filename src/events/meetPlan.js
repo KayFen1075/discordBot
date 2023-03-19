@@ -63,7 +63,8 @@ module.exports = {
                 "subjects": games,
                 "users_invited": [],
                 "users_accepted": [],
-                "users_someone": [],  // { "id": "id", "time": "time", "reason": "reason"}
+                "users_later": [],
+                "users_someone": [],
                 "users_declined": [], // { "id": "id", "reason": "reason"}
                 "time": null,
                 "message_id": null,
@@ -235,7 +236,7 @@ module.exports = {
 
             interaction.reply({content: 'Ага, вот какие у тебя фетиши..', ephemeral: true})
             fs.writeFileSync(`./src/dataBase/users/${interaction.user.id}.json`, JSON.stringify(userData, null, 4))
-        } else if ( interaction.customId.includes('plan_meet_4') ) {
+        } else if ( interaction.customId?.includes('plan_meet_4') ) {
             let time = Number(interaction.values[0]);
 
             let userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${interaction.user.id}.json`));
@@ -290,7 +291,7 @@ module.exports = {
 
             userData.planMeet.time = time
             fs.writeFileSync(`./src/dataBase/users/${interaction.user.id}.json`, JSON.stringify(userData, null, 4))
-        } else if ( interaction.customId.includes('plan_meet_5') ) {
+        } else if ( interaction.customId?.includes('plan_meet_5') ) {
             let userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${interaction.user.id}.json`));
 
             const selectButton = interaction.customId.split('plan_meet_5');
@@ -321,7 +322,7 @@ module.exports = {
                     embeds: [new EmbedBuilder()
                         .setTitle(`🚧 Планирование собрания`)
                         .setColor(Colors.Green)
-                        .setDescription(`Вы выбрали что собрание начнеться в \`${RoundTime(dateFormPlan.getHours())}:${RoundTime(dateFormPlan.getMinutes())}\` через \`${timeToMeetInDays}\` д.\nДо этого вы выбрали участников: ${ping_users}\nТемы собрания: \`${subjects}\`\nСобрание начнеться когда все будут готовы(поголосуют, если лохи не голосуют то можно ипользовать \`/meet start\`).`)],
+                        .setDescription(`Вы выбрали что собрание начнеться в \`${RoundTime(dateFormPlan.getHours())}:${RoundTime(dateFormPlan.getMinutes())}\` через (\`${RoundTime(dateFormPlan.getDate())}.${RoundTime(dateFormPlan.getMonth()+1)}\`) д.\nДо этого вы выбрали участников: ${ping_users}\nТемы собрания: \`${subjects}\`\nСобрание начнеться когда все будут готовы(поголосуют, если лохи не голосуют то можно ипользовать \`/meet start\`).`)],
                         components: button
                 })
             } 
@@ -333,7 +334,7 @@ module.exports = {
                     embeds: [new EmbedBuilder()
                         .setTitle(`🚧 Планирование собрания`)
                         .setColor(Colors.Green)
-                        .setDescription(`Вы выбрали что собрание начнеться в \`${RoundTime(dateFormPlan.getHours())}:${RoundTime(dateFormPlan.getMinutes())}\` через \`${timeToMeetInDays}\` д.\nДо этого вы выбрали участников: ${ping_users}\nТемы собрания: \`${subjects}\`\nСобрание начнеться ровно по времени.`)],
+                        .setDescription(`Вы выбрали что собрание начнеться в \`${RoundTime(dateFormPlan.getHours())}:${RoundTime(dateFormPlan.getMinutes())}\` через (\`${RoundTime(dateFormPlan.getDate())}.${RoundTime(dateFormPlan.getMonth()+1)}\`) д.\nДо этого вы выбрали участников: ${ping_users}\nТемы собрания: \`${subjects}\`\nСобрание начнеться ровно по времени.`)],
                         components: button
                 })
             }
@@ -345,7 +346,7 @@ module.exports = {
                     embeds: [new EmbedBuilder()
                         .setTitle(`🚧 Планирование собрания`)
                         .setColor(Colors.Green)
-                        .setDescription(`Вы выбрали что собрание начнеться в \`${RoundTime(dateFormPlan.getHours())}:${RoundTime(dateFormPlan.getMinutes())}\` через \`${timeToMeetInDays}\` д.\nДо этого вы выбрали участников: ${ping_users}\nТемы собрания: \`${subjects}\`\nСобрание начнеться только по команде \`/meet start\`.`)],
+                        .setDescription(`Вы выбрали что собрание начнеться в \`${RoundTime(dateFormPlan.getHours())}:${RoundTime(dateFormPlan.getMinutes())}\` (\`${RoundTime(dateFormPlan.getDate())}.${RoundTime(dateFormPlan.getMonth()+1)}\`)\nДо этого вы выбрали участников: ${ping_users}\nТемы собрания: \`${subjects}\`\nСобрание начнеться только по команде \`/meet start\`.`)],
                         components: button
                 })
             }
@@ -356,7 +357,7 @@ module.exports = {
                 embeds: [new EmbedBuilder()
                     .setTitle(`📅 Залпнированно собрание`)
                     .setColor(Colors.Green)
-                    .setDescription(`Собрание начнеться в \`${RoundTime(dateFormPlan.getHours())}:${RoundTime(dateFormPlan.getMinutes())}\` через \`${timeToMeetInDays}\` д.\nТемы собрания: \`${subjects}\`\nПриглашенные участники: ${ping_users}\nНажмите выбирите сможете вы прийти или нет. __**ЭТО ОБЯЗАТЕЛЬНО!**__`),
+                    .setDescription(`Собрание начнеться в \`${RoundTime(dateFormPlan.getHours())}:${RoundTime(dateFormPlan.getMinutes())}\` (\`${RoundTime(dateFormPlan.getDate())}.${RoundTime(dateFormPlan.getMonth()+1)}\`)\nТемы собрания: \`${subjects}\`\nПриглашенные участники: ${ping_users}\nНажмите выбирите сможете вы прийти или нет. __**ЭТО ОБЯЗАТЕЛЬНО!**__`),
                 ],
                 components: [
                     new ActionRowBuilder().addComponents([
@@ -380,13 +381,17 @@ module.exports = {
                 ]
             })
             
+            // 15 random emojis 
+            const emojis = ['🔥', '💥', '🫡', '🧨', '🐸', '🐷', '🐵', '😺', '🫥', '🌈', '🌪', '🌟', '🌙', '🌚', '🌝']
+            const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)]
+
             // create thread
             const thread = await message.startThread({
-                name: `🔥 Логи собрания ${userData.userName}`,
+                name: `${randomEmoji} Логи собрания ${userData.userName}`,
                 autoArchiveDuration: 60,
             })
 
-            thread.send(`<@${interaction.user.id}> Собрание запланировано! и позвал вас: ${ping_users}\nСобрание начнеться в \`${RoundTime(dateFormPlan.getHours())}:${RoundTime(dateFormPlan.getMinutes())}\` через \`${timeToMeetInDays}\` дней.\nТемы собрания: \`${subjects}\``)
+            thread.send(`<@${interaction.user.id}> Собрание запланировано! и позвал вас: ${ping_users}\nСобрание начнеться в \`${RoundTime(dateFormPlan.getHours())}:${RoundTime(dateFormPlan.getMinutes())}\` (\`${RoundTime(dateFormPlan.getDate())}.${RoundTime(dateFormPlan.getMonth()+1)}\`)\nТемы собрания: \`${subjects}\``)
             
             userData.planMeet.message_id = message.id
             fs.writeFileSync(`./src/dataBase/users/${interaction.user.id}.json`, JSON.stringify(userData, null, 4))

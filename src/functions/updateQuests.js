@@ -26,6 +26,9 @@ async function updateQuests(client) {
 
         quests.forEach(quest => {
             quest.users_have_quest.forEach(user => {
+                if (!fs.existsSync(`./src/dataBase/users/${user.id}.json`)) {
+                    return;
+                }
                 let userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${user.id}.json`));
                 userData.stuck = 1;
                 fs.writeFileSync(`./src/dataBase/users/${user.id}.json`, JSON.stringify(userData));
@@ -35,6 +38,9 @@ async function updateQuests(client) {
 
         const users = fs.readdirSync('./src/dataBase/users/');
         users.forEach(user => {
+            if (!fs.existsSync(`./src/dataBase/users/${user.id}.json`)) {
+                return;
+            }
             user = user.replace('.json', '');
             
             let userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${user}.json`));
@@ -171,6 +177,7 @@ async function updateMessageQuest(client) {
 
         let fileds = [];
         evrydayQuests.forEach(user => {
+            if (!fs.existsSync(`./src/dataBase/users/${user.id}.json`)) return 
             let quest = data.quests.find(quest => quest.name === user.quest);
             const userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${user.id}.json`))
 
@@ -192,6 +199,7 @@ async function updateMessageQuest(client) {
         let fileds = [];
 
         weekQuests.forEach(user => {
+            if (!fs.existsSync(`./src/dataBase/users/${user.id}.json`)) return 
             let quest = data.quests.find(quest => quest.name === user.quest);
             const userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${user.id}.json`))
 
@@ -212,6 +220,7 @@ async function updateMessageQuest(client) {
         let fileds = [];
 
         seasonQuests.forEach(user => {
+            if (!fs.existsSync(`./src/dataBase/users/${user.id}.json`)) return 
             let quest = data.quests.find(quest => quest.name === user.quest);
             const userData = JSON.parse(fs.readFileSync(`./src/dataBase/users/${user.id}.json`))
 
