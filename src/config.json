@@ -1,5 +1,17 @@
 {
     "clientId": "1060761793204596846",
     "guildId": "1060755232109379644",
-    "token": "MTA2MDc2MTc5MzIwNDU5Njg0Ng.GZ_xHi.ptebHgrIFNvb2Qc-pSZCspfJ7qDuGpvc0ICIRY"
+    "token": "MTA2MDc2MTc5MzIwNDU5Njg0Ng.GZ_xHi.ptebHgrIFNvb2Qc-pSZCspfJ7qDuGpvc0ICIRY",
+    "chatGPT_token": "",
+    "channels_id": {
+        "news": "1062752082408513676",
+        "free_chat": "1060755820003991672",
+        "premium_chat": "1060755874081165373",
+        "list": "1061827241031508121",
+        "state": "1061911188528693358",
+        "happy_days": "1061912734582718505",
+        "achievements": "1080976121627164765",
+        "quests": "1082480582912651325",
+        "meets": "1074715039212253346"
+    }
 }

@@ -7,7 +7,7 @@ const { fileLog } = require('../functions/logs');
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('advanced')
+        .setName('achievements')
         .setDescription('Достижения')
         .addSubcommand(subcommand => subcommand
             .setName('create')

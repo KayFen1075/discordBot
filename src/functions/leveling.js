@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { checkLeveling } = require('./cheking');
 const { fileLog } = require('./logs');
-
+const config = require('../config.json');
 async function xpAdd(client, user, xp, message, channelId, boostDisable) {
     if (!fs.existsSync(`./src/dataBase/users/${user}.json`)) {
         return
@@ -58,7 +58,7 @@ async function levelUp(client, user, remainder_xp, message, channelId) {
         channel.send(`Поздравляем <@${user}> с повышением уровня активности до **${userData.leveling.level}** уровня!`);
         fileLog(`[LEVELING]`, `Пользователь <@${userData.userName}> повысил свой уровень до ${userData.leveling.level} уровня! через голосовой чат`)
     } else {
-        const channel = client.channels.cache.get('1060755820003991672');
+        const channel = client.channels.cache.get(config.channels_id.free_chat);
         channel.send(`Поздравляем <@${user}> с повышением уровня активности до **${userData.leveling.level}** уровня!`);
         fileLog(`[LEVELING]`, `Пользователь <@${userData.userName}> повысил свой уровень до ${userData.leveling.level} уровня! через голосовой чат`)
     }

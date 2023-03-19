@@ -15,12 +15,15 @@ const client = new Client({
 
 client.commands = new Collection();
 
-// client.on('interactionCreate', (interaction) => {
-	// interaction.options. /
-// })
+// client.on('threadCreate', (interaction) => {
+	// interaction.appliedTags.forEach(tag => {
+		// console.log(`tag: `+tag);
+	// })
+// });
 
-// client.on('ready', (Client) => {/
-// 	console.log(client.application. /)
+// 
+// client.on('ready', (client) => {
+	// 
 // })
 
 const commandsPath = path.join(__dirname, 'commands');

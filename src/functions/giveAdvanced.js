@@ -25,9 +25,6 @@ async function giveAdvanced(client, name, user) {
                 
                 data.advenced[i].users.push(user);
                 fs.writeFileSync('./src/dataBase/bot.json', JSON.stringify(data, null, 2));
-                console.log(
-                    `Выдано достижение ${name} пользователю (${user})`
-                );
                 fileLog(`Выдано достижение ${name} пользователю (${user})`);
                 
                 xpAdd(client, user, data.advenced[i].xp, undefined, undefined, true)
