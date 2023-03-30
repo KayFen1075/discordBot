@@ -10,8 +10,9 @@ async function planMeet(client, creatorId, subjects, users, time) {
         "subjects": subjects,
         "users_invited": users,
         "users_accepted": [],
-        "users_someone": [],  // { "id": "id", "time": "time", "reason": "reason"}
-        "users_declined": [], // { "id": "id", "reason": "reason"}
+        "users_someone": [], 
+        "users_declined": [], 
+        "users_rejected": [],
         "time": time
     }
 

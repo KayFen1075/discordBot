@@ -5,6 +5,7 @@ const { fileLog } = require('../functions/logs')
 
 const { get_game_list, check_game_in_list } = require('../functions/listFunc.js');
 const { giveAdvanced } = require('../functions/giveAdvanced');
+const { meetCreate } = require('../functions/meet');
 
 module.exports = {
     name: Events.InteractionCreate,
@@ -13,12 +14,6 @@ module.exports = {
         if (!fs.existsSync(`./src/dataBase/users/${interaction.user.id}.json`)) {
             return
         }
-        function truncateText(text) {
-            if (text.length > 60) {
-              return text.substring(0, 60) + "..";
-            }
-            return text;
-          }
 
         const interactionUser = interaction.user.id; 
         let subcommand = false;
@@ -109,104 +104,9 @@ module.exports = {
             } 
         } else if (interaction.customId === 'start_confern_3') {
             if (fs.existsSync(`./src/dataBase/meets/${interaction.user.id}.json`)) {
-                interaction.reply('Ты уже создал собрание! Выйди из него перед тем как создать новое `/meet leave ${найди себя}`(Это удалит собрание)')
+                interaction.reply({ content: 'У тебя уже есть собрание, закончи его или отмени', ephemeral: true })
             } else {
-                let userList = [];
-                let perms = [];
-
-                const meetChannel = await interaction.guild.channels.cache.get('1074715039212253346')
-
-                const voiceChannel = await interaction.guild.channels.create({
-                    name: `${userr.userName}: ${truncateText(userr.createEvent.setup1.toString())} id♂${interaction.user.id}`,
-                    type: ChannelType.GuildVoice,
-                }); await voiceChannel.setParent('1060755232583319665');
-
-                // await interaction.user.send({
-                //     content: `https://discord.com/channels/${interaction.guildId}/${await voiceChannel.id}`,
-                //     embeds: [new EmbedBuilder()
-                //         .setTitle(`🎉 Вы создали собрание собрание!`)
-                //         .setDescription(`Вы ${userr.userName} позвали поиграть в **${userr.createEvent.setup1}**!\nЗайти в голосовой канал можно [через эту ссылку](https://discord.com/channels/${interaction.guildId}/${await voiceChannel.id})`)
-                //         .setColor(Colors.Green)
-                //         .setTimestamp(Date.now())
-                //     ]
-                // })
-                await interaction.values.forEach(async element => {
-                    const user = await interaction.guild.members.cache.get(element);
-                    userList.push(`<@${user.user.id}> `)
-                    await perms.push({
-                        id: element,
-                        allow: [PermissionsBitField.Flags.Connect],
-                    },
-                        {
-                            id: interaction.user.id,
-                            allow: [PermissionsBitField.Flags.Connect],
-                        },
-                        {
-                            id: interaction.guild.id,
-                            deny: [PermissionsBitField.Flags.Connect],
-                        })
-                });
-
-                meetChannel.send({
-                    content: `<@${interaction.user.id}> создал собрание и позвал: ${userList} https://discord.com/channels/${interaction.guildId}/${await voiceChannel.id}`,
-                    embeds: [new EmbedBuilder()
-                        .setTitle(`🎉 Новое собрание!`)
-                        .setDescription(`${userr.userName} позвал поиграть в **${userr.createEvent.setup1}**!\nВсе участники собрания: **<@${interaction.user.id}>, ${userList}**\nЗайти в голосовой канал можно [через эту ссылку](https://discord.com/channels/${interaction.guildId}/${await voiceChannel.id})`)
-                        .setColor(Colors.Green)
-                        .setTimestamp(Date.now())
-                    ]
-                })
-
-                await voiceChannel.permissionOverwrites.set(await perms)
-
-                userr.createEvent.setup2 = interaction.values;
-                const userData = JSON.stringify(userr);
-                fs.writeFileSync(`./src/dataBase/users/${interactionUser}.json`, userData)
-                await interaction.message.edit({
-                    content: `<@${interaction.user.id}> Начинаю массовую спам атаку`,
-                    embeds: [new EmbedBuilder()
-                        .setTitle(`🚧 Создание собрания`)
-                        .setColor(Colors.Yellow)
-                        .setDescription(`Вы выбрали: \n${await userList}\n\`\`\`${userr.createEvent.setup1}\`\`\`\n скоро начнёться собрание`)],
-                    tts: true,
-                    components: [new ActionRowBuilder().addComponents([new ButtonBuilder()
-                        .setCustomId('ready_meet')
-                        .setLabel('Готов')
-                        .setStyle(ButtonStyle.Success)])]
-                })
-
-                let meet = {
-                    users_list: interaction.values,
-                    games_list: userr.createEvent.setup1,
-                    channel: voiceChannel.id,
-                    time_start: Date.now()
-                }; 
-
-                giveAdvanced(interaction.client, "Hello world", interaction.user.id)
-
-                setTimeout(()=>{
-                    interaction.message.delete()    
-                }, 5000)
-                const chech_users = setInterval(async ()=>{
-                    const members = await voiceChannel.members.filter(member => !member.user.bot);
-                    if (members.size === 0 && fs.existsSync(`./src/dataBase/meets/${interaction.user.id}.json`)) {
-                        voiceChannel.delete()
-                        const timeMeet = Date.now() - meet.time_start
-
-                        let bot = JSON.parse(fs.readFileSync(`./src/dataBase/bot.json`))
-                            bot.state[bot.state.length - 1] = bot.state[bot.state.length - 1] + timeMeet
-                            fs.writeFileSync(`./src/dataBase/bot.json`, JSON.stringify(bot))
-
-                        meetChannel.send(`<@${interaction.user.id}> ваше собрание было пустым, поэтому я его закрыл, оно длилось \`${Math.round(timeMeet / 60000 / 60)}ч, ${Math.round(timeMeet / 60000 % 60)}м\``)
-                        fs.unlinkSync(`./src/dataBase/meets/${interaction.user.id}.json`)
-                        clearInterval(chech_users)
-                    }
-                }, 300000)
-                interaction.reply({ content: 'GayPaty StaRt', ephemeral: true })
-                fileLog(`[MEET] ${interaction.user.username} создал собрание с ${userList} в ${voiceChannel.name} (${voiceChannel.id})
-Участники собрания: ${interaction.values.join(', ')}
-Время начала: ${new Date(meet.time_start).toLocaleString()}`)
-                fs.writeFileSync(`./src/dataBase/meets/${interaction.user.id}.json`, JSON.stringify(meet))
+                meetCreate(undefined, interaction.client, interaction.user.id, userr.createEvent.setup1, interaction.values)
             }
         } else if (interaction.subcommand === 'change' && interaction.options.get('subject')) {
             const value = (await interaction.options.get('subject')).value

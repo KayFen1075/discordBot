@@ -1,5 +1,5 @@
 const { StringSelectMenuBuilder } = require('@discordjs/builders');
-const { Events, ActionRowBuilder } = require('discord.js');
+const { Events, ActionRowBuilder, ButtonStyle, ButtonBuilder } = require('discord.js');
 const fs = require('fs');
 
 module.exports = {
@@ -240,7 +240,7 @@ module.exports = {
                             ])
                     );
 
-                    interaction.reply({ content: `Причина отказа?`, ephemeral: true, components: [row] });
+                interaction.reply({ content: `Причина отказа?`, ephemeral: true, components: [row] });
             } else {
                 plan.users_later = plan.users_later.filter((user) => user !== interaction.user.id);
                 plan.users_someone = plan.users_someone.filter((user) => user !== interaction.user.id);
@@ -255,6 +255,68 @@ module.exports = {
 
                 fs.writeFileSync(`./src/dataBase/planMeets/${plan_id}.json`, JSON.stringify(plan));
             }
+        } else if (interaction.customId?.includes('add_invite')) {
+            let plan_id = interaction.customId.split('☼')[1];
+
+            if (!fs.existsSync(`./src/dataBase/planMeets/${plan_id}.json`)) {
+                interaction.reply({ content: `План пользователя <@${plan_id}> уже не актуален.`, ephemeral: true });
+                return;
+            }
+
+            let plan = JSON.parse(fs.readFileSync(`./src/dataBase/planMeets/${plan_id}.json`));
+
+            if (plan.users_invited.includes(interaction.user.id)) {
+                interaction.reply({ content: `Вы уже имеете приглашение на собрание.`, ephemeral: true });
+                return;
+            }
+
+            if (plan.users_requested.includes(interaction.user.id)) {
+                interaction.reply({ content: `Вы уже подали заявку в собрание.`, ephemeral: true });
+                return;
+            }
+
+            plan.users_requested.push(interaction.user.id);
+
+            const message = await interaction.channel.messages.fetch(plan.message_id);
+            message.thread.send({
+                content: `🤝 <@${plan_id}> пользователь хочет попасть на встречу! <@${interaction.user.id}> хочет прийти на встречу.`,
+                components: [
+                    new ActionRowBuilder()
+                        .addComponents(
+                            new ButtonBuilder()
+                                .setCustomId(`complite_invite☼${interaction.user.id}`)
+                                .setLabel(`Пригласить`)
+                                .setStyle(ButtonStyle.Success)
+                        )
+                ]
+            });
+
+            interaction.reply({ content: `Вы успешно подали заявку на встречу.`, ephemeral: true });
+
+            fs.writeFileSync(`./src/dataBase/planMeets/${plan_id}.json`, JSON.stringify(plan));
+        } else if (interaction.customId?.includes('complite_invite')) {
+            let user_id = interaction.customId.split('☼')[1];
+
+            if (!fs.existsSync(`./src/dataBase/planMeets/${interaction.user.id}.json`)) {
+                interaction.reply({ content: `План пользователя <@${plan_id}> уже не актуален.`, ephemeral: true });
+                return;
+            }
+
+            let plan = JSON.parse(fs.readFileSync(`./src/dataBase/planMeets/${interaction.user.id}.json`));
+
+            if (plan.users_invited.includes(user_id)) {
+                interaction.reply({ content: `Пользователя не подал заявку, ЦЕ ФЭЙК!!!.(уже есть)`, ephemeral: true });
+                return;
+            }
+
+            plan.users_invited.push(user_id);
+
+            const message = await interaction.channel.messages.fetch(plan.message_id);
+            message.thread.send(`🫱🏿‍🫲🏿 <@${user_id}> ваше приглашение на встречу принято. Выберите сможете ли вы прийти.`);
+
+            interaction.reply({ content: `Вы успешно приняли приглашение на встречу.`, ephemeral: true });
+
+            fs.writeFileSync(`./src/dataBase/planMeets/${interaction.user.id}.json`, JSON.stringify(plan));
         }
     }
 }

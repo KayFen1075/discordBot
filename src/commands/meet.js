@@ -3,6 +3,7 @@ const { execute } = require('./list');
 const fs = require('fs');
 const { fileLog } = require('../functions/logs')
 const { EmbedBuilder } = require('@discordjs/builders');
+const { meetStart } = require('../functions/meet');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('meet')
@@ -255,6 +256,22 @@ module.exports = {
 
             const message = await interaction.channel.messages.fetch(planMeet.message_id)
             message.thread.send(`<@${user}> вы были приглашены это собрание, пожалуйста выбирите смогли ли вы принять участие в нем.`)
+        } 
+
+        // start meet
+        else if (interaction.options._subcommand === 'start') {
+            if (fs.existsSync(`./src/dataBase/meets/${interaction.user.id}.json`)) {
+                interaction.reply({content: `Вы уже проводите собрание`, ephemeral: true})
+                return
+            }
+
+            if (!fs.existsSync(`./src/dataBase/planMeets/${interaction.user.id}.json`)) {
+                interaction.reply({content: `Вы не создали план собрания`, ephemeral: true})
+                return
+            }
+
+            meetStart(interaction.client, interaction.user.id)
+            interaction.reply({content: `Вы начали собрание`, ephemeral: true})
         }
     }
 }

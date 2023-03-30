@@ -66,10 +66,13 @@ module.exports = {
                 "users_later": [],
                 "users_someone": [],
                 "users_declined": [], // { "id": "id", "reason": "reason"}
+                "users_requested": [],
+                "type": "time",
                 "time": null,
                 "message_id": null,
                 "ping_30_min": false,
                 "ping_5_min": false,
+                "emoji": null,
             }
 
             fs.writeFileSync(`./src/dataBase/users/${interaction.user.id}.json`, JSON.stringify(userData, null, 4))
@@ -129,7 +132,7 @@ module.exports = {
 
                 for (let i = hours; i <= 21; i++) {
                     for (let j = 0; j < 60; j += 30) {
-                        const time = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1, i, j).getTime().toString()
+                        const time = new Date(date.getFullYear(), date.getMonth(), date.getDate(), i, j).getTime().toString()
                         options.push({
                             label: `Сегодня в ${RoundTime(i)}:${RoundTime(j)}`,
                             emoji: '<:segodna:1084743616599167026>',
@@ -169,7 +172,7 @@ module.exports = {
 
                 for (let i = 10; i <= 21; i++) {
                     for (let j = 0; j < 60; j += 30) {
-                        const time = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 1, i, j).getTime().toString()
+                        const time = new Date(date.getFullYear(), date.getMonth(), date.getDate() + 2, i, j).getTime().toString()
                         options.push({
                             label: `Послезавтра в ${RoundTime(i)}:${RoundTime(j)}`,
                             emoji: '<:posle_zavtra:1084744736398639104>',
@@ -364,25 +367,34 @@ module.exports = {
                         new ButtonBuilder()
                             .setCustomId(`accept_invite☼${interaction.user.id}`)
                             .setLabel('Я смогу')
+                            .setEmoji('<:9462pepe8:1069747369702338591>')
                             .setStyle(ButtonStyle.Success),
                         new ButtonBuilder()
                             .setCustomId(`maybe_invite☼${interaction.user.id}`)
                             .setLabel('Может буду')
+                            .setEmoji('<:andIdidntdoanything:1069747362857226350>')
                             .setStyle(ButtonStyle.Primary),
                         new ButtonBuilder()
                             .setCustomId(`later_invite☼${interaction.user.id}`)
+                            .setEmoji(`<:cool:1069747338077290638>`)
                             .setLabel('Буду позже')
                             .setStyle(ButtonStyle.Primary),
                         new ButtonBuilder()
                             .setCustomId(`not_invite☼${interaction.user.id}`)
                             .setLabel('Не смогу')
-                            .setStyle(ButtonStyle.Danger)
+                            .setEmoji('<:clown:1069747358688083988>')
+                            .setStyle(ButtonStyle.Danger),
+                        new ButtonBuilder()
+                            .setCustomId(`add_invite☼${interaction.user.id}`)
+                            .setEmoji(`<:UM:1069747345887080488>`)
+                            .setLabel('Добавьте меня')
+                            .setStyle(ButtonStyle.Secondary),
                     ])
                 ]
             })
             
             // 15 random emojis 
-            const emojis = ['🔥', '💥', '🫡', '🧨', '🐸', '🐷', '🐵', '😺', '🫥', '🌈', '🌪', '🌟', '🌙', '🌚', '🌝']
+            const emojis = ['🔥', '💥', '🫡', '🧨', '🐸', '🐷', '🐵', '😺', '🫥', '🌈', '🌟', '🌙', '🌚', '🌝']
             const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)]
 
             // create thread
@@ -394,6 +406,7 @@ module.exports = {
             thread.send(`<@${interaction.user.id}> Собрание запланировано! и позвал вас: ${ping_users}\nСобрание начнеться в \`${RoundTime(dateFormPlan.getHours())}:${RoundTime(dateFormPlan.getMinutes())}\` (\`${RoundTime(dateFormPlan.getDate())}.${RoundTime(dateFormPlan.getMonth()+1)}\`)\nТемы собрания: \`${subjects}\``)
             
             userData.planMeet.message_id = message.id
+            userData.planMeet.emoji = randomEmoji
             fs.writeFileSync(`./src/dataBase/users/${interaction.user.id}.json`, JSON.stringify(userData, null, 4))
 
             // create file in dataBase/planMeets

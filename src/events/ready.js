@@ -15,6 +15,7 @@ const { checkBoostTime, addBoost } = require('../functions/leveling.js');
 const { updateStatick } = require('../functions/statistick.js');
 const { checkActive } = require('../functions/cheking.js');
 const { updateQuests } = require('../functions/updateQuests.js');
+const { checkPlans } = require('../functions/meet.js');
 
 
 module.exports = {
@@ -143,9 +144,13 @@ module.exports = {
         }
         await updateList()
 
+        checkPlans(client)
         updateQuests(client)
         checkActive(client)
         updateStatick(client)
+        setInterval(() => {
+            checkPlans(client)
+        }, 10000)
         setInterval(() => {
             checkActive(client)
             cheakVotes()
