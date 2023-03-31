@@ -4,6 +4,8 @@ const config = require('../config.json');
 const { ChannelType, PermissionsBitField, Colors, ButtonStyle, ThreadAutoArchiveDuration } = require('discord.js');
 const { ActionRowBuilder, ButtonBuilder, EmbedBuilder } = require('@discordjs/builders');
 const { giveAdvanced } = require('./giveAdvanced');
+const { RoundTime } = require('../functions/Mthon');
+const { log } = require('console');
 
 function truncateText(text) {
     if (text.length > 60) {
@@ -108,7 +110,7 @@ async function meetCreate(interaction, client, creator_id, subjects, users, xpBo
         users_list: users,
         games_list: subjects,
         channel: voiceChannel.id,
-        meesage_id: meet_message.id,
+        message_id: meet_message.id,
         time_start: Date.now(),
         emoji: randomEmoji,
         xp_boost: xpBoost,
@@ -139,7 +141,7 @@ async function meetCreate(interaction, client, creator_id, subjects, users, xpBo
             fs.writeFileSync(`./src/dataBase/bot.json`, JSON.stringify(bot))
 
             meets_channel.send(`<@${creator_id}> ваше собрание было пустым, поэтому я его закрыл, оно длилось \`${Math.round(timeMeet / 60000 / 60)}ч, ${Math.round(timeMeet / 60000 % 60)}м\`, это время не учитывалось так как в нём не кого не было.`)
-            fs.unlinkSync(`./src/dataBase/meets/${creator_id}.json`)
+            meetEnd_message(client, creator_id)
             clearInterval(chech_users)
         }
     }, 1800000)
@@ -240,7 +242,7 @@ async function meetStart(client, creator_id, xpBoost) {
             users_list: users,
             games_list: planMeet.subjects,
             channel: voiceChannel.id,
-            meesage_id: planMeet.message,
+            message_id: planMeet.message,
             time_start: Date.now(),
             emoji: planMeet.emoji,
             xp_boost: xpBoost,
@@ -361,7 +363,7 @@ async function checkPlans(client) {
                     return
                 }
             } break;
-
+			ф
             case 'time': {
                 if (planMeet.time <= date.getTime()) {
                     meetStart(client, element, planMeet.xpBoost)
@@ -381,14 +383,14 @@ async function checkPlans(client) {
                     setTimeout(async () => {
                         if (fs.existsSync(`./src/dataBase/planMeets/${element}.json`)) {
                             const channel = await client.channels.fetch(config.channels_id.meets);
-                        const message = await channel.messages.fetch(planMeet.message_id)
-
-                        await message.thread.send({
-                            content: `❌ <@${element}> ваше собрание не было запущено в течении 2 часов! Запланированое собрание удалено.`,
-                        })
-
-                        fs.unlinkSync(`./src/dataBase/planMeets/${element}.json`)
-                        }
+                            const message = await channel.messages.fetch(planMeet.message_id)
+                            
+                            await message.thread.send({
+                                content: `❌ <@${element}> ваше собрание не было запущено в течении 2 часов! Запланированое собрание удалено.`,
+                            })
+                        
+                            fs.unlinkSync(`./src/dataBase/planMeets/${element}.json`)
+                            }
                     }, 120 *60*1000)
 
                     planMeet.type = 'end'
@@ -400,4 +402,53 @@ async function checkPlans(client) {
     });
 }
 
-module.exports = { meetCreate, meetStart, checkPlans }
+async function meetEnd_message(client, creator_id) {
+	if (!fs.existsSync(`./src/dataBase/meets/${creator_id}.json`)) return
+	const meet = JSON.parse(fs.readFileSync(`./src/dataBase/meets/${creator_id}.json`))
+	const user = JSON.parse(fs.readFileSync(`./src/dataBase/users/${creator_id}.json`))
+
+	console.log(meet);
+
+	const channel = await client.channels.fetch(config.channels_id.meets);
+	const message = await channel.messages.fetch(meet.message_id)	
+
+	console.log(channel);
+
+	const time = new Date(meet.time_start)
+	const now = new Date()
+
+	const timeDiff = now.getTime() - time.getTime()
+
+	const hours = Math.floor(timeDiff / (1000 * 60 * 60))
+	const minutes = Math.floor((timeDiff % (1000 * 60 * 60)) / (1000 * 60))
+
+	const ping_users = []
+	meet.users_list.forEach(element => {
+		ping_users.push(`<@${element}>`)
+	});
+
+	message.thread.send({
+		content: `🛑 <@${creator_id}> собрание было завершенро, оно продлилось \`${RoundTime(hours)}ч, ${RoundTime(minutes)}м\`!`,
+	})
+
+	message.edit({
+		content: `<@${creator_id}> собрание уже закрыто, оно продлилось \`${RoundTime(hours)}ч, ${RoundTime(minutes)}м\`!`,
+		embeds: [
+			{
+				title: `${meet.emoji} Собрание ${user.userName}`,
+				description: `${user.userName} ваше собрание было закончено, темы собрания: \`${meet.games_list.join(', ')}\`.\nВсе участники собрания:<@${creator_id}>, ${ping_users.join(', ')}!\nВремя проведения собрания: \`${RoundTime(hours)}ч, ${RoundTime(minutes)}м\``,
+				color: Colors.Red,
+				footer: {
+					text: `Собрание было создано ${time.toLocaleString('ru-RU', { timeZone: 'Europe/Moscow' })}`,
+				},
+			},
+		],
+		components: [],
+	})
+
+	message.thread.setArchived(true)
+
+	fs.unlinkSync(`./src/dataBase/meets/${creator_id}.json`)
+}
+
+module.exports = { meetCreate, meetStart, checkPlans, meetEnd_message }

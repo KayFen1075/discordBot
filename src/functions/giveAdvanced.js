@@ -12,13 +12,12 @@ async function giveAdvanced(client, name, user) {
 
     let data = JSON.parse(fs.readFileSync('./src/dataBase/bot.json'));
     const channelAdvanced = client.channels.cache.get('1080976121627164765');
-    console.log(2);
 
     // check if advanced exists
     data.advenced.forEach((e, i) => {
         if (e.name == name) {
             if (e.users.includes(user)) {
-                return console.log(`Пользователь ${user} уже имеет достижение ${name}`);
+                return
             } else {
                 const advenced = e;
                 const users = fs.readdirSync('./src/dataBase/users/').length;

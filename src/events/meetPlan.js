@@ -359,7 +359,7 @@ module.exports = {
                 content: `<@${interaction.user.id}> Собрание запланировано! и позвал вас: ${ping_users}`,
                 embeds: [new EmbedBuilder()
                     .setTitle(`📅 Залпнированно собрание`)
-                    .setColor(Colors.Green)
+                    .setColor(Colors.Yellow)
                     .setDescription(`Собрание начнеться в \`${RoundTime(dateFormPlan.getHours())}:${RoundTime(dateFormPlan.getMinutes())}\` (\`${RoundTime(dateFormPlan.getDate())}.${RoundTime(dateFormPlan.getMonth()+1)}\`)\nТемы собрания: \`${subjects}\`\nПриглашенные участники: ${ping_users}\nНажмите выбирите сможете вы прийти или нет. __**ЭТО ОБЯЗАТЕЛЬНО!**__`),
                 ],
                 components: [

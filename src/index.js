@@ -9,6 +9,7 @@ const { token } = require('./config.json');
 const { channel } = require('diagnostics_channel');
 const { request } = require('http');
 const { time, Console } = require('console');
+const { meetEnd_message } = require('./functions/meet');
 const client = new Client({
 	intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates]
 });
@@ -22,8 +23,9 @@ client.commands = new Collection();
 // });
 
 // 
+
 // client.on('ready', (client) => {
-	// 
+	// meetEnd_message(client, '543103577837797386')
 // })
 
 const commandsPath = path.join(__dirname, 'commands');

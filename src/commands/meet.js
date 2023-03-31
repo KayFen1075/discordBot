@@ -3,7 +3,7 @@ const { execute } = require('./list');
 const fs = require('fs');
 const { fileLog } = require('../functions/logs')
 const { EmbedBuilder } = require('@discordjs/builders');
-const { meetStart } = require('../functions/meet');
+const { meetStart, meetEnd_message } = require('../functions/meet');
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('meet')
@@ -104,7 +104,7 @@ module.exports = {
                         meetChannel.send(`<@${interaction.user.id}> закрыл собрание, еслии быть точнее то этот ебан вышел из своего же собрания`)
                         fileLog(`[MEET] ${interaction.user.tag} закрыл собрание, еслии быть точнее то этот ебан вышел из своего же собрания`)
                     await interaction.reply({content: `Вы удалили собрание`, ephemeral: true})
-                    fs.unlinkSync(`./src/dataBase/meets/${interaction.user.id}.json`)
+                    meetEnd_message(interaction.client, interaction.user.id)
                 } else {
                     let userOverwrite = voiceChannel.permissionOverwrites
                     if (userOverwrite) {
@@ -195,7 +195,7 @@ module.exports = {
                 voiceChannel.delete();
                 await interaction.reply({content: `Вы удалили собрание`, ephemeral: true})
                 fileLog(`[MEET] ${interaction.user.tag} удалил собрание`)
-                fs.unlinkSync(`./src/dataBase/meets/${interaction.user.id}.json`)
+                meetEnd_message(interaction.client, interaction.user.id)
             } else {
                 interaction.reply({content: `Вы не проводите собрание`, ephemeral: true})
             }
